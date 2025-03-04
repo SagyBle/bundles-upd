@@ -117,16 +117,9 @@ const createProduct = async (request: Request) => {
         locationId,
       },
     );
-    // const updatedInventory = await ProductService.adjustInventoryQuantity(
-    //   request,
-    //   {
-    //     inventoryItemId,
-    //     availableDelta: 1,
-    //     locationId,
-    //   },
-    // );
 
-    const updatedInventoryItem = await ProductService.updateInventoryItem(
+    const updatedInventoryItem = await ProductService.newUpdateInventoryItem(
+      { admin },
       request,
       {
         id: inventoryItemId,

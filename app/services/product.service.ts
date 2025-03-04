@@ -680,6 +680,63 @@ const updateInventoryItem = async (
     return null;
   }
 };
+const newUpdateInventoryItem = async (
+  auth: any,
+  request: Request,
+  input: { id: string; tracked?: boolean },
+) => {
+  try {
+    // ✅ Step 1: Check request type (admin or session)
+    // const { isAdmin, isSession } = await checkRequestType(request);
+
+    // ✅ Step 2: Construct GraphQL variables
+    const variables = {
+      id: input.id,
+      input: {
+        ...(input.tracked !== undefined && { tracked: input.tracked }),
+      },
+    };
+
+    // let data: any = null;
+
+    // if (isAdmin) {
+    //   // ✅ Step 3: Execute Admin API request
+    //   data = await AdminShopifyService.executeGraphQL(
+    //     request,
+    //     GRAPHQL_UPDATE_INVENTORY_ITEM,
+    //     variables,
+    //   );
+    // } else if (isSession) {
+    //   // ✅ Step 4: Execute Session API request
+    //   data = await SessionShopifyService.executeGraphQL(
+    //     request,
+    //     GRAPHQL_UPDATE_INVENTORY_ITEM,
+    //     variables,
+    //   );
+    // } else {
+    //   throw new Error("Unauthorized: No valid admin or session.");
+    // }
+
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_UPDATE_INVENTORY_ITEM,
+      variables,
+    );
+
+    // ✅ Step 5: Handle API errors
+    const errors = data?.inventoryItemUpdate?.userErrors || [];
+    if (errors.length > 0) {
+      console.error("❌ Inventory Update Errors:", errors);
+      return null;
+    }
+
+    // ✅ Step 6: Return updated inventory item
+    return data?.inventoryItemUpdate?.inventoryItem || null;
+  } catch (error) {
+    console.error("❌ Error updating inventory item:", error);
+    return null;
+  }
+};
 
 export default {
   newCreateProduct,
@@ -697,4 +754,5 @@ export default {
   adjustInventoryQuantity,
   newAdjustInventoryQuantity,
   updateInventoryItem,
+  newUpdateInventoryItem,
 };
