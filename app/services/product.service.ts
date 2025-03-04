@@ -538,6 +538,63 @@ const adjustInventoryQuantity = async (request: Request, input: any) => {
     return null;
   }
 };
+const newAdjustInventoryQuantity = async (
+  auth: any,
+  request: Request,
+  input: any,
+) => {
+  try {
+    // ✅ Step 1: Ensure only Admin access
+    // const { isAdmin } = await checkRequestType(request);
+    // if (!isAdmin) {
+    //   throw new Error("Unauthorized: Only admin users can adjust inventory.");
+    // }
+
+    // ✅ Step 2: Prepare variables for the GraphQL request
+    const variables = {
+      input: {
+        reason: input.reason || "correction",
+        name: "available",
+        referenceDocumentUri:
+          input.referenceDocumentUri ||
+          "logistics://some.warehouse/take/2023-01/13",
+        changes: [
+          {
+            delta: 1,
+            inventoryItemId: input.inventoryItemId,
+            locationId: input.locationId,
+          },
+        ],
+      },
+    };
+
+    console.log("sagy3", variables);
+
+    // // ✅ Step 3: Execute Admin API request
+    // const data: any = await AdminShopifyService.executeGraphQL(
+    //   request,
+    //   GRAPHQL_ADJUST_INVENTORY_QUANTITY,
+    //   variables,
+    // );
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_ADJUST_INVENTORY_QUANTITY,
+      variables,
+    );
+
+    // ✅ Step 4: Check for errors and return response
+    const errors = data?.inventoryAdjustQuantities?.userErrors || [];
+    if (errors.length > 0) {
+      console.error("❌ Inventory Adjustment Error:", errors);
+      return null;
+    }
+
+    return data?.inventoryAdjustQuantities?.inventoryAdjustmentGroup || null;
+  } catch (error) {
+    console.error("❌ Error adjusting inventory:", error);
+    return null;
+  }
+};
 
 const newCreateProduct = async (auth: any, request: Request, input: any) => {
   try {
@@ -638,5 +695,6 @@ export default {
   newCreateProductMedia,
   createProductMedia,
   adjustInventoryQuantity,
+  newAdjustInventoryQuantity,
   updateInventoryItem,
 };
