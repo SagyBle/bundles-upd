@@ -44,6 +44,7 @@ const createBundle = async (request: Request) => {
     secondProductId = data?.secondProductId;
 
     if (data?.bundleTitle) {
+      // TODO: add here a function
       title = data?.bundleTitle;
     }
 
