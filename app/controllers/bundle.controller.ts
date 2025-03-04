@@ -113,7 +113,11 @@ const createBundle = async (request: Request) => {
   // ✅ Step 9: Create the Bundle
   try {
     const bundleCreated =
-      (await BundleService.createBundle({ admin }, request, bundleInput)) || "";
+      (await BundleService.createBundle(
+        { admin, session },
+        request,
+        bundleInput,
+      )) || "";
 
     const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
     const variantId = await getProductDefaultVariantId(request, apiService, {
