@@ -443,18 +443,23 @@ const adjustInventoryQuantity = async (request: Request, input: any) => {
   }
 };
 
-const newCreateProduct = async (request: Request, input: any) => {
+const newCreateProduct = async (auth: any, request: Request, input: any) => {
   try {
     // ✅ Check if the request is from an admin
-    const { isAdmin } = await checkRequestType(request);
+    // const { isAdmin } = await checkRequestType(request);
 
-    if (!isAdmin) {
-      throw new Error("Unauthorized: Only admin users can create products.");
-    }
+    // if (!isAdmin) {
+    //   throw new Error("Unauthorized: Only admin users can create products.");
+    // }
 
-    // ✅ Execute GraphQL Mutation via AdminShopifyService
-    const data: any = await AdminShopifyService.executeGraphQL(
-      request,
+    // // ✅ Execute GraphQL Mutation via AdminShopifyService
+    // const data: any = await AdminShopifyService.executeGraphQL(
+    //   request,
+    //   GRAPHQL_NEW_CREATE_PRODUCT,
+    //   { product: input },
+    // );
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_NEW_CREATE_PRODUCT,
       { product: input },
     );

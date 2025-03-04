@@ -6,6 +6,8 @@ import { Tag } from "app/utils/Tag.util";
 
 const createProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     // Type check: shape that we allow
     const shape = "Marquise";
     // Make sure Weight tag is down to 2.6
@@ -62,7 +64,7 @@ const createProduct = async (request: Request) => {
 
     console.log("sagy3");
 
-    const product = await ProductService.newCreateProduct(request, {
+    const product = await ProductService.newCreateProduct({ admin }, request, {
       title,
       tags,
       metafields,
