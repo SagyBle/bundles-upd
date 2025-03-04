@@ -122,15 +122,12 @@ const createProduct = async (request: Request) => {
 
 const deleteProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
     if (!productId) throw new Error("Product ID is required to delete.");
 
-    const { admin } = await checkRequestType(request);
-
-    // const deletedProductId = await ProductService.deleteProduct(request, {
-    //   id: productId,
-    // });
     const deletedProductId = await ProductService.newDeleteProduct(
       { admin },
       request,
@@ -148,6 +145,8 @@ const deleteProduct = async (request: Request) => {
 
 const updateProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
     const newTitle = formData.get("newTitle") as string;
@@ -156,10 +155,14 @@ const updateProduct = async (request: Request) => {
       throw new Error("Product ID and new title are required.");
     }
 
-    const updatedProduct = await ProductService.updateProduct(request, {
-      id: productId,
-      title: newTitle,
-    });
+    const updatedProduct = await ProductService.newUpdateProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+        title: newTitle,
+      },
+    );
 
     return { success: true, updatedProduct };
   } catch (error: any) {

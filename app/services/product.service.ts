@@ -20,6 +20,33 @@ import { checkRequestType } from "app/utils/auth.util";
 import { SessionShopifyService } from "./api/sessionShopify.api.service";
 import { ShopifyService } from "./api/shopify.api.service";
 
+const newUpdateProduct = async (
+  auth: any,
+  request: Request,
+  input: { id: string; title?: string; status?: "ACTIVE" | "DRAFT" },
+) => {
+  try {
+    const variables = {
+      product: {
+        id: input.id,
+        ...(input.title && { title: input.title }),
+        ...(input.status && { status: input.status }),
+      },
+    };
+
+    const data: any = ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_NEW_UPDATE_PRODUCT,
+      variables,
+    );
+
+    return data?.productUpdate?.product || null;
+  } catch (error) {
+    console.error("Error updating product:", error);
+    return null;
+  }
+};
+
 const updateProduct = async (
   request: Request,
   input: { id: string; title?: string; status?: "ACTIVE" | "DRAFT" },
@@ -475,6 +502,7 @@ export default {
   deleteProduct,
   newDeleteProduct,
   updateProduct,
+  newUpdateProduct,
   getProductMetafields,
   populateProduct,
   createProductMedia,
