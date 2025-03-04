@@ -73,10 +73,6 @@ const updateBundleMetafieldProductsIds = async (
   bundledProductIds: string[],
 ) => {
   try {
-    // ✅ Step 1: Check request type
-    // const { isAdmin, isSession } = await checkRequestType(request);
-
-    // ✅ Step 2: Format Product & Metafield Data
     const formattedProductId = formatGid(
       productId,
       ShopifyResourceType.Product,
@@ -103,7 +99,6 @@ const updateBundleMetafieldProductsIds = async (
       variables,
     );
 
-    // ✅ Step 5: Handle API Response
     const userErrors = data?.productUpdate?.userErrors;
     if (userErrors?.length) {
       throw new Error(

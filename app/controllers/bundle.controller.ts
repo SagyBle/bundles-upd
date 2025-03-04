@@ -77,8 +77,8 @@ const createBundle = async (request: Request) => {
 
   // ✅ Step 7: Fetch Product Options
   const [firstProductOptions, secondProductOptions] = await Promise.all([
-    getProductOptions(request, { id: firstProductGid }),
-    getProductOptions(request, { id: secondProductGid }),
+    getProductOptions({ admin, session }, request, { id: firstProductGid }),
+    getProductOptions({ admin, session }, request, { id: secondProductGid }),
   ]);
 
   // ✅ Step 8: Prepare Bundle Input

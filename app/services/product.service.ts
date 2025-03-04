@@ -139,23 +139,25 @@ export const getProductMetafields = async (
 };
 
 export const getProductOptions = async (
+  auth: any,
   request: Request,
   input: { id: string },
 ) => {
   try {
     // ✅ Step 1: Determine if the request is from Admin or Session
-    const { isAdmin, isSession } = await checkRequestType(request);
+    // const { isAdmin, isSession } = await checkRequestType(request);
 
-    if (!isAdmin && !isSession) {
-      throw new Error("Unauthorized: No valid admin or session.");
-    }
+    // if (!isAdmin && !isSession) {
+    //   throw new Error("Unauthorized: No valid admin or session.");
+    // }
 
     // ✅ Step 2: Choose API Service Based on Request Type
-    const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
+    // const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
 
     // ✅ Step 3: Execute GraphQL Query
-    const data: any = await apiService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      // request,
+      auth,
       GRAPHQL_GET_PRODUCT_OPTIONS,
       { id: input.id },
     );
