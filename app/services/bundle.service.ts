@@ -9,9 +9,6 @@ import {
 } from "app/graphql/bundle.queries";
 import { retryWithDelay } from "app/utils/general.util";
 import productService from "./product.service";
-import { checkRequestType } from "app/utils/auth.util";
-import { AdminShopifyService } from "./api/adminShopify.api.service";
-import { SessionShopifyService } from "./api/sessionShopify.api.service";
 import { ShopifyService } from "./api/shopify.api.service";
 
 const createBundle = async (

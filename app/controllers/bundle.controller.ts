@@ -1,7 +1,7 @@
 import { ShopifyResourceType } from "app/enums/gid.enums";
 
 import BundleService from "app/services/bundle.service";
-import {
+import productService, {
   getProductDefaultVariantId,
   getProductOptions,
 } from "app/services/product.service";
@@ -15,6 +15,7 @@ import { ApiResponse } from "app/utils/apiResponse";
 import { cors } from "remix-utils/cors";
 import { AdminShopifyService } from "app/services/api/adminShopify.api.service";
 import { SessionShopifyService } from "app/services/api/sessionShopify.api.service";
+import ProductService from "app/services/product.service";
 
 const createBundle = async (request: Request) => {
   // ✅ Step 1: Check if request is from Admin or Session
@@ -77,11 +78,14 @@ const createBundle = async (request: Request) => {
 
   // ✅ Step 7: Fetch Product Options
   const [firstProductOptions, secondProductOptions] = await Promise.all([
-    getProductOptions({ admin, session }, request, { id: firstProductGid }),
-    getProductOptions({ admin, session }, request, { id: secondProductGid }),
+    ProductService.getProductOptions({ admin, session }, request, {
+      id: firstProductGid,
+    }),
+    ProductService.getProductOptions({ admin, session }, request, {
+      id: secondProductGid,
+    }),
   ]);
 
-  // ✅ Step 8: Prepare Bundle Input
   const bundleInput = {
     input: {
       title,
@@ -120,9 +124,13 @@ const createBundle = async (request: Request) => {
       )) || "";
 
     const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
-    const variantId = await getProductDefaultVariantId(request, apiService, {
-      productId: bundleCreated,
-    });
+    const variantId = await ProductService.getProductDefaultVariantId(
+      { admin, session },
+      request,
+      {
+        productId: bundleCreated,
+      },
+    );
 
     console.log("sagy23", variantId);
     const variantIdNumeric = extractIdFromGid(variantId);
