@@ -204,18 +204,23 @@ const updateProductStatus = async (request: Request) => {
 
 const populateProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
-    // const productIds = formData.get("productIds") as string;
     if (!productId) throw new Error("Product ID is required to delete.");
 
-    const populatedProduct = await ProductService.populateProduct(request, {
-      id: productId,
-    });
+    const populatedProduct = await ProductService.newPopulateProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+      },
+    );
 
     return { success: true, populatedProduct };
   } catch (error: any) {
-    console.error("Error deleting product:", error);
+    console.error("Error populating product:", error);
     return { success: false, error: error.message };
   }
 };

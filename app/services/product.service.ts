@@ -291,6 +291,33 @@ export const getProductDefaultVariantId = async (
   }
 };
 
+export const newPopulateProduct = async (
+  auth: any,
+  request: Request,
+  input: { id: string },
+) => {
+  try {
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_POPULATE_PRODUCT,
+      { id: input.id },
+    );
+
+    // ✅ Step 4: Handle errors or return the product data
+    if (!data?.product) {
+      console.error("❌ GraphQL Error - No product returned:", data);
+      return null;
+    }
+
+    return data.product;
+  } catch (error) {
+    console.error(
+      "❌ Error fetching product details including metafields:",
+      error,
+    );
+    return null;
+  }
+};
 export const populateProduct = async (
   request: Request,
   input: { id: string },
@@ -505,6 +532,7 @@ export default {
   newUpdateProduct,
   getProductMetafields,
   populateProduct,
+  newPopulateProduct,
   createProductMedia,
   adjustInventoryQuantity,
   updateInventoryItem,
