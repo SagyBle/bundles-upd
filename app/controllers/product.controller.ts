@@ -99,10 +99,14 @@ const createProduct = async (request: Request) => {
     console.log("sagy300", { inventoryItemId, locationId, variantId });
 
     if (!variantId) throw new Error("Failed to retrieve product variant ID.");
-    const updatedVariant = await ProductService.updateProductVariants(request, {
-      productId: product.id,
-      variants: [{ id: variantId, price }],
-    });
+    const updatedVariant = await ProductService.newUpdateProductVariants(
+      { admin },
+      request,
+      {
+        productId: product.id,
+        variants: [{ id: variantId, price }],
+      },
+    );
 
     const updatedInventory = await ProductService.adjustInventoryQuantity(
       request,
