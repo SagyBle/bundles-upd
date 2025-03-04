@@ -75,10 +75,18 @@ const createProduct = async (request: Request) => {
     // TODO: build this function
     console.log("sagy149", product.id);
 
-    const uploadedMedia = await ProductService.createProductMedia(request, {
-      productId: product.id,
-      media,
-    });
+    // const uploadedMedia = await ProductService.createProductMedia(request, {
+    //   productId: product.id,
+    //   media,
+    // });
+    const uploadedMedia = await ProductService.newCreateProductMedia(
+      { admin },
+      request,
+      {
+        productId: product.id,
+        media,
+      },
+    );
 
     if (!uploadedMedia) {
       throw new Error("❌ Failed to upload media.");

@@ -393,6 +393,50 @@ export const createProductMedia = async (
     return null;
   }
 };
+export const newCreateProductMedia = async (
+  auth: any,
+  request: Request,
+  input: {
+    productId: string;
+    media: { alt?: string; mediaContentType: string; originalSource: string }[];
+  },
+): Promise<{ id: string; previewUrl: string }[] | null> => {
+  try {
+    console.log("🚀 Uploading media for product:", input.productId);
+
+    // // ✅ Execute GraphQL Mutation via AdminShopifyService
+    // const data: any = await AdminShopifyService.executeGraphQL(
+    //   request,
+    //   GRAPHQL_CREATE_PRODUCT_MEDIA,
+    //   input,
+    // );
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_CREATE_PRODUCT_MEDIA,
+      input,
+    );
+
+    console.log("📢 Media Upload Response:", JSON.stringify(data, null, 2));
+
+    // ✅ Extract media details
+    const uploadedMedia = data?.productCreateMedia?.media || [];
+    const userErrors = data?.productCreateMedia?.userErrors || [];
+
+    if (userErrors.length > 0) {
+      console.error("❌ Shopify Media Upload Errors:", userErrors);
+      return null;
+    }
+
+    // ✅ Return list of media IDs and preview URLs
+    return uploadedMedia.map((media: any) => ({
+      id: media.id,
+      previewUrl: media.preview?.image?.originalSrc || "",
+    }));
+  } catch (error) {
+    console.error("❌ Error uploading product media:", error);
+    return null;
+  }
+};
 
 const adjustInventoryQuantity = async (request: Request, input: any) => {
   try {
@@ -538,6 +582,7 @@ export default {
   getProductMetafields,
   populateProduct,
   newPopulateProduct,
+  newCreateProductMedia,
   createProductMedia,
   adjustInventoryQuantity,
   updateInventoryItem,
