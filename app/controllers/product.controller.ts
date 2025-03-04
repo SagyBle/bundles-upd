@@ -173,6 +173,8 @@ const updateProduct = async (request: Request) => {
 
 const updateProductStatus = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
     const status = formData.get("status") as string;
@@ -184,10 +186,14 @@ const updateProductStatus = async (request: Request) => {
       );
     }
 
-    const updatedProduct = await ProductService.updateProduct(request, {
-      id: productId,
-      status: status as "ACTIVE" | "DRAFT",
-    });
+    const updatedProduct = await ProductService.newUpdateProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+        status: status as "ACTIVE" | "DRAFT",
+      },
+    );
 
     return { success: true, updatedProduct };
   } catch (error: any) {
