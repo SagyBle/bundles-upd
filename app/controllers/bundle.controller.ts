@@ -19,7 +19,8 @@ import { SessionShopifyService } from "app/services/api/sessionShopify.api.servi
 const createBundle = async (request: Request) => {
   // ✅ Step 1: Check if request is from Admin or Session
 
-  const { isAdmin, isSession } = await checkRequestType(request);
+  const { isAdmin, admin, isSession, session } =
+    await checkRequestType(request);
 
   let firstProductId: string | null = null;
   let secondProductId: string | null = null;
@@ -47,13 +48,6 @@ const createBundle = async (request: Request) => {
       // TODO: add here a function
       title = data?.bundleTitle;
     }
-
-    // ✅ Step 4: Create new product (only in session requests)
-
-    if (!secondProductId) {
-      const createdProduct = await ProductController.createProduct(request);
-      secondProductId = createdProduct?.product?.id || null;
-    }
   } else {
     return json(ApiResponse.error("Unauthorized: No valid admin or session."), {
       status: 401,
@@ -78,6 +72,8 @@ const createBundle = async (request: Request) => {
     secondProductId,
     ShopifyResourceType.Product,
   );
+
+  console.log("sagy1000", firstProductGid, secondProductGid);
 
   // ✅ Step 7: Fetch Product Options
   const [firstProductOptions, secondProductOptions] = await Promise.all([
@@ -112,12 +108,12 @@ const createBundle = async (request: Request) => {
     },
   };
 
+  console.log("sagy1002", bundleInput);
+
   // ✅ Step 9: Create the Bundle
   try {
-    const bundleCreated = await BundleService.createBundle(
-      request,
-      bundleInput,
-    );
+    const bundleCreated =
+      (await BundleService.createBundle({ admin }, request, bundleInput)) || "";
 
     const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
     const variantId = await getProductDefaultVariantId(request, apiService, {

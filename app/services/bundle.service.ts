@@ -12,88 +12,130 @@ import productService from "./product.service";
 import { checkRequestType } from "app/utils/auth.util";
 import { AdminShopifyService } from "./api/adminShopify.api.service";
 import { SessionShopifyService } from "./api/sessionShopify.api.service";
+import { ShopifyService } from "./api/shopify.api.service";
 
-const createBundle = async (request: Request, input: BundleInput) => {
+const createBundle = async (
+  auth: any,
+  request: Request,
+  input: BundleInput,
+) => {
   try {
     // ✅ Step 1: Check request type
-    const { isAdmin, isSession } = await checkRequestType(request);
+    // const { isAdmin, isSession } = await checkRequestType(request);
+    //
 
-    if (isAdmin) {
-      // ✅ Step 2: Proceed with Admin API request
-      const data: any = await AdminShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_PRODUCT_BUNDLE_CREATE,
-        input,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_PRODUCT_BUNDLE_CREATE,
+      input,
+    );
+    const bundleOperationId =
+      data?.productBundleCreate?.productBundleOperation?.id;
+    let bundleProductId = await getProductIdFromBundleOperation(
+      request,
+      bundleOperationId,
+    );
+
+    if (!bundleProductId) bundleProductId = "";
+
+    const userErrors = data?.bundleCreate?.userErrors;
+    const productsIds = extractProductIds(input);
+
+    if (userErrors?.length) {
+      throw new Error(
+        `Bundle creation failed: ${userErrors.map((e: any) => e.message).join(", ")}`,
       );
-
-      const bundleOperationId =
-        data?.productBundleCreate?.productBundleOperation?.id;
-      let bundleProductId = await getProductIdFromBundleOperation(
-        request,
-        bundleOperationId,
-      );
-
-      if (!bundleProductId) bundleProductId = "";
-
-      const userErrors = data?.bundleCreate?.userErrors;
-      const productsIds = extractProductIds(input);
-
-      // ✅ Update bundle product metafield
-      await updateBundleMetafieldProductsIds(
-        request,
-        bundleProductId,
-        productsIds,
-      );
-
-      if (userErrors?.length) {
-        throw new Error(
-          `Bundle creation failed: ${userErrors.map((e: any) => e.message).join(", ")}`,
-        );
-      }
-
-      return bundleProductId;
-    } else if (isSession) {
-      // ✅ Step 3: Handle session request
-      console.log("sagy28", "Session request");
-
-      const data: any = await SessionShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_PRODUCT_BUNDLE_CREATE,
-        input,
-      );
-
-      console.log("sagy29", data);
-
-      const bundleOperationId =
-        data?.productBundleCreate?.productBundleOperation?.id;
-      let bundleProductId = await getProductIdFromBundleOperation(
-        request,
-        bundleOperationId,
-      );
-
-      if (!bundleProductId) bundleProductId = "";
-
-      console.log("Bundle product ID (Session):", bundleProductId);
-
-      // ✅ Step 4: Extract product IDs
-      const productsIds = extractProductIds(input);
-
-      // ✅ Step 5: Update bundle product metafield for session-based requests
-      await updateBundleMetafieldProductsIds(
-        request,
-        bundleProductId,
-        productsIds,
-      );
-
-      await productService.updateProduct(request, {
-        id: bundleProductId,
-        status: "ACTIVE",
-      });
-
-      return bundleProductId;
     }
 
-    throw new Error("Unauthorized: No valid admin or session.");
+    await updateBundleMetafieldProductsIds(
+      request,
+      bundleProductId,
+      productsIds,
+    );
+
+    await productService.newUpdateProduct(auth, request, {
+      id: bundleProductId,
+      status: "ACTIVE",
+    });
+
+    return bundleProductId;
+
+    // if (isAdmin) {
+    //   // ✅ Step 2: Proceed with Admin API request
+    //   // const data: any = await AdminShopifyService.executeGraphQL(
+    //   //   request,
+    //   //   GRAPHQL_PRODUCT_BUNDLE_CREATE,
+    //   //   input,
+    //   // );
+
+    //   const bundleOperationId =
+    //     data?.productBundleCreate?.productBundleOperation?.id;
+    //   let bundleProductId = await getProductIdFromBundleOperation(
+    //     request,
+    //     bundleOperationId,
+    //   );
+
+    //   if (!bundleProductId) bundleProductId = "";
+
+    //   const userErrors = data?.bundleCreate?.userErrors;
+    //   const productsIds = extractProductIds(input);
+
+    //   // ✅ Update bundle product metafield
+    //   await updateBundleMetafieldProductsIds(
+    //     request,
+    //     bundleProductId,
+    //     productsIds,
+    //   );
+
+    //   if (userErrors?.length) {
+    //     throw new Error(
+    //       `Bundle creation failed: ${userErrors.map((e: any) => e.message).join(", ")}`,
+    //     );
+    //   }
+
+    //   return bundleProductId;
+    // } else if (isSession) {
+    //   // ✅ Step 3: Handle session request
+    //   console.log("sagy28", "Session request");
+
+    //   // const data: any = await SessionShopifyService.executeGraphQL(
+    //   //   request,
+    //   //   GRAPHQL_PRODUCT_BUNDLE_CREATE,
+    //   //   input,
+    //   // );
+
+    //   console.log("sagy29", data);
+
+    //   const bundleOperationId =
+    //     data?.productBundleCreate?.productBundleOperation?.id;
+    //   let bundleProductId = await getProductIdFromBundleOperation(
+    //     request,
+    //     bundleOperationId,
+    //   );
+
+    //   if (!bundleProductId) bundleProductId = "";
+
+    //   console.log("Bundle product ID (Session):", bundleProductId);
+
+    //   // ✅ Step 4: Extract product IDs
+    //   const productsIds = extractProductIds(input);
+
+    //   // ✅ Step 5: Update bundle product metafield for session-based requests
+    //   await updateBundleMetafieldProductsIds(
+    //     request,
+    //     bundleProductId,
+    //     productsIds,
+    //   );
+
+    //   await productService.updateProduct(request, {
+    //     id: bundleProductId,
+    //     status: "ACTIVE",
+    //   });
+
+    //   return bundleProductId;
+    // }
+
+    // throw new Error("Unauthorized: No valid admin or session.");
   } catch (error) {
     console.error("Error creating bundle:", error);
     throw new Error("Failed to create bundle.");
