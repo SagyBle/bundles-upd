@@ -133,6 +133,58 @@ const updateProductVariants = async (
   }
 };
 
+const newUpdateProductVariants = async (
+  auth: any,
+  request: Request,
+  input: { productId: string; variants: ProductVariantUpdateInput[] },
+) => {
+  try {
+    // ✅ Step 1: Check request type
+    // const { isAdmin, isSession } = await checkRequestType(request);
+
+    // let data: any = null;
+
+    // if (isAdmin) {
+    //   // ✅ Step 2: Execute Admin API request
+    //   data = await AdminShopifyService.executeGraphQL(
+    //     request,
+    //     GRAPHQL_UPDATE_PRODUCT_VARIANTS,
+    //     {
+    //       productId: input.productId,
+    //       variants: input.variants,
+    //     },
+    //   );
+    // } else if (isSession) {
+    //   // ✅ Step 3: Execute Session API request
+    //   data = await SessionShopifyService.executeGraphQL(
+    //     request,
+    //     GRAPHQL_UPDATE_PRODUCT_VARIANTS,
+    //     {
+    //       productId: input.productId,
+    //       variants: input.variants,
+    //     },
+    //   );
+    // } else {
+    //   throw new Error("Unauthorized: No valid admin or session.");
+    // }
+
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_UPDATE_PRODUCT_VARIANTS,
+      {
+        productId: input.productId,
+        variants: input.variants,
+      },
+    );
+
+    // ✅ Step 4: Return updated product variants
+    return data?.productVariantsBulkUpdate?.productVariants || null;
+  } catch (error) {
+    console.error("❌ Error updating product variants:", error);
+    return null;
+  }
+};
+
 const deleteProduct = async (request: Request, input: { id: string }) => {
   try {
     // Check request type (admin or session)
@@ -575,6 +627,7 @@ const updateInventoryItem = async (
 export default {
   newCreateProduct,
   updateProductVariants,
+  newUpdateProductVariants,
   deleteProduct,
   newDeleteProduct,
   updateProduct,
