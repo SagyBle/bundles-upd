@@ -1,5 +1,7 @@
 import { TagKey, TagValue } from "app/enums/tag.enums";
+import { ShopifyService } from "app/services/api/shopify.api.service";
 import ProductService from "app/services/product.service";
+import { checkRequestType } from "app/utils/auth.util";
 import { Tag } from "app/utils/Tag.util";
 
 const createProduct = async (request: Request) => {
@@ -124,9 +126,18 @@ const deleteProduct = async (request: Request) => {
     const productId = formData.get("productId") as string;
     if (!productId) throw new Error("Product ID is required to delete.");
 
-    const deletedProductId = await ProductService.deleteProduct(request, {
-      id: productId,
-    });
+    const { admin } = await checkRequestType(request);
+
+    // const deletedProductId = await ProductService.deleteProduct(request, {
+    //   id: productId,
+    // });
+    const deletedProductId = await ProductService.newDeleteProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+      },
+    );
 
     return { success: true, deletedProductId };
   } catch (error: any) {

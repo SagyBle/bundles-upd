@@ -19,46 +19,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return cors(request, response);
 }
 
-// export async function action({ request }: ActionFunctionArgs) {
-//   // Handle preflight OPTIONS request
-//   console.log("sagy301");
-
-//   if (request.method === "OPTIONS") {
-//     const response = json({ status: 200 });
-//     return await cors(request, response);
-//   }
-//   const requestObject = await checkRequestType(request);
-//   console.log(
-//     "sagy400",
-//     "requestObject.isAdmin",
-//     requestObject.isAdmin,
-//     "requestObject.isSession",
-//     requestObject.isSession,
-//   );
-
-//   try {
-//     const data = await request.json();
-//     return cors(
-//       request,
-//       json({
-//         success: true,
-//         message: "Request received!",
-//         hell: "yes!",
-//         data,
-//       }),
-//     );
-//   } catch (error: any) {
-//     return cors(
-//       request,
-//       json({
-//         success: false,
-//         message: "Error processing request",
-//         error: error.message,
-//       }),
-//     );
-//   }
-// }
-
 export async function action({ request }: ActionFunctionArgs) {
   console.log("sagy301");
 

@@ -18,6 +18,7 @@ import { ProductVariantUpdateInput } from "app/types/product.types";
 import { AdminShopifyService } from "./api/adminShopify.api.service";
 import { checkRequestType } from "app/utils/auth.util";
 import { SessionShopifyService } from "./api/sessionShopify.api.service";
+import { ShopifyService } from "./api/shopify.api.service";
 
 const updateProduct = async (
   request: Request,
@@ -122,6 +123,34 @@ const deleteProduct = async (request: Request, input: { id: string }) => {
     );
 
     // Check for GraphQL user errors
+    const errors = data?.productDelete?.userErrors;
+    if (errors?.length) {
+      throw new Error(
+        `Failed to delete product: ${errors.map((e: any) => e.message).join(", ")}`,
+      );
+    }
+
+    return data?.productDelete?.deletedProductId || null;
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    return null;
+  }
+};
+
+const newDeleteProduct = async (
+  auth: any,
+  request: Request,
+  input: { id: string },
+) => {
+  console.log("sagy101", "newDeleteProduct product service!");
+
+  try {
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_DELETE_PRODUCT,
+      { id: input.id },
+    );
+
     const errors = data?.productDelete?.userErrors;
     if (errors?.length) {
       throw new Error(
@@ -444,6 +473,7 @@ export default {
   newCreateProduct,
   updateProductVariants,
   deleteProduct,
+  newDeleteProduct,
   updateProduct,
   getProductMetafields,
   populateProduct,
