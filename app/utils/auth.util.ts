@@ -20,8 +20,10 @@ export async function checkRequestType(request: Request) {
     if (session) isSession = true;
   } catch (error) {}
 
-  if (!isAdmin && !isSession)
-    console.log("Authentication FAILED, no session, no admin.");
+  if (!isAdmin && !isSession) {
+    console.error("❌ Authentication FAILED: No valid session or admin.");
+    throw new Error("Unauthorized: No valid session or admin access.");
+  }
 
   return { isAdmin, isSession, admin, session };
 }
