@@ -2,7 +2,7 @@ const SHOPIFY_API_VERSION = process.env.SHOPIFY_API_VERSION || "2025-01";
 
 export class ShopifyService {
   static async executeGraphQL<T>(
-    auth: { admin?: any; session?: any }, // Pass authenticated session/admin
+    auth: { admin?: any; session?: any },
     query: string,
     variables?: Record<string, any>,
   ): Promise<T | null> {
