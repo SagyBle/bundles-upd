@@ -1,5 +1,3 @@
-// import shopify from './shopify'; // Adjust the import path accordingly
-// import { authenticate } from './auth'; // Adjust the import path accordingly
 import { authenticate } from "app/shopify.server";
 
 export async function checkRequestType(request: Request) {

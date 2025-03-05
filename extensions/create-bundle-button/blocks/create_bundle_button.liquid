@@ -135,7 +135,7 @@
 
       setTimeout(() => {
         addBundleToCart(variantIdNumeric, startTime);
-      }, 1500);
+      }, 1200);
 
     } catch (error) {
       console.error("❌ Fetch Error:", error);
@@ -144,36 +144,53 @@
   };
 
   // Function to add bundle to cart
-  const addBundleToCart = async (variantId, startTime) => {
-    console.log("🚀 Adding bundle to cart...", variantId);
+  const addBundleToCart = async (variantId, startTime,maxDuration = 3000, retryDelay = 200) => {
+    console.log("🚀 Waiting before adding bundle to cart...", variantId);
+    
+    // Wait initially before starting retries
 
-    try {
-      const response = await fetch("/cart/add.js", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: variantId,
-          quantity: 1,
-        }),
-      });
+    console.log("🚀 Adding bundle to cart now...", variantId);
+    const startTimeCart = Date.now();
+    const endTimeCart = startTimeCart + maxDuration;
 
-      if (!response.ok) {
-        throw new Error(`Failed to add product to cart: ${response.status}`);
+    while (Date.now() < endTimeCart) {
+      try {
+        console.log("🚀 Trying to add bundle to cart");
+
+        const response = await fetch("/cart/add.js", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id: variantId,
+            quantity: 1,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to add product to cart: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data && Object.keys(data).length > 0) {
+          const elapsedTime = (Date.now() - startTime) / 1000;
+          console.log("✅ Product added to cart:", data, "Total time:", elapsedTime);
+          alert("✅ Bundle added to cart!");
+          return;
+        } else {
+          console.warn("⚠️ Empty response received. Retrying...");
+        }
+      } catch (error) {
+        console.error("❌ Error adding product to cart:", error);
       }
 
-      const data = await response.json();
-
-      const endTime = Date.now();
-      const elapsedTime = (endTime - startTime) / 1000;
-
-      console.log("✅ Product added to cart:", data, "Total time:", elapsedTime);
-      alert(`✅ Bundle added to cart!`);
-    } catch (error) {
-      console.error("❌ Error adding product to cart:", error);
-      alert(`❌ Error adding bundle to cart: ${error.message}`);
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
+
+    console.error("⏳ Max retries reached. Bundle not added.");
+    alert("❌ Error adding bundle to cart. Please try again.");
   };
 
   const testProxy = async () => {

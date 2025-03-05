@@ -23,7 +23,6 @@ const createBundle = async (request: Request) => {
     secondProductId = formData.get("secondProductId") as string;
     title = (formData.get("title") as string) || title;
   } else if (isSession) {
-    // ✅ Step 3: Extract data from JSON body
     const data = await request.json();
     firstProductId = data?.firstProductId;
     secondProductId = data?.secondProductId;
@@ -37,14 +36,12 @@ const createBundle = async (request: Request) => {
     });
   }
 
-  // ✅ Step 5: Validate Product IDs
   if (!firstProductId || !secondProductId) {
     return json(ApiResponse.error("Both product IDs are required"), {
       status: 400,
     });
   }
 
-  // ✅ Step 6: Convert IDs to Shopify GID format
   const firstProductGid = formatGid(
     firstProductId,
     ShopifyResourceType.Product,
