@@ -1,9 +1,13 @@
 import { TagKey, TagValue } from "app/enums/tag.enums";
+import { ShopifyService } from "app/services/api/shopify.api.service";
 import ProductService from "app/services/product.service";
+import { checkRequestType } from "app/utils/auth.util";
 import { Tag } from "app/utils/Tag.util";
 
 const createProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     // Type check: shape that we allow
     const shape = "Marquise";
     // Make sure Weight tag is down to 2.6
@@ -60,7 +64,7 @@ const createProduct = async (request: Request) => {
 
     console.log("sagy3");
 
-    const product = await ProductService.newCreateProduct(request, {
+    const product = await ProductService.newCreateProduct({ admin }, request, {
       title,
       tags,
       metafields,
@@ -71,10 +75,14 @@ const createProduct = async (request: Request) => {
     // TODO: build this function
     console.log("sagy149", product.id);
 
-    const uploadedMedia = await ProductService.createProductMedia(request, {
-      productId: product.id,
-      media,
-    });
+    const uploadedMedia = await ProductService.newCreateProductMedia(
+      { admin },
+      request,
+      {
+        productId: product.id,
+        media,
+      },
+    );
 
     if (!uploadedMedia) {
       throw new Error("❌ Failed to upload media.");
@@ -87,12 +95,17 @@ const createProduct = async (request: Request) => {
     console.log("sagy300", { inventoryItemId, locationId, variantId });
 
     if (!variantId) throw new Error("Failed to retrieve product variant ID.");
-    const updatedVariant = await ProductService.updateProductVariants(request, {
-      productId: product.id,
-      variants: [{ id: variantId, price }],
-    });
+    const updatedVariant = await ProductService.newUpdateProductVariants(
+      { admin },
+      request,
+      {
+        productId: product.id,
+        variants: [{ id: variantId, price }],
+      },
+    );
 
-    const updatedInventory = await ProductService.adjustInventoryQuantity(
+    const updatedInventory = await ProductService.newAdjustInventoryQuantity(
+      { admin },
       request,
       {
         inventoryItemId,
@@ -101,7 +114,8 @@ const createProduct = async (request: Request) => {
       },
     );
 
-    const updatedInventoryItem = await ProductService.updateInventoryItem(
+    const updatedInventoryItem = await ProductService.newUpdateInventoryItem(
+      { admin },
       request,
       {
         id: inventoryItemId,
@@ -120,13 +134,19 @@ const createProduct = async (request: Request) => {
 
 const deleteProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
     if (!productId) throw new Error("Product ID is required to delete.");
 
-    const deletedProductId = await ProductService.deleteProduct(request, {
-      id: productId,
-    });
+    const deletedProductId = await ProductService.newDeleteProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+      },
+    );
 
     return { success: true, deletedProductId };
   } catch (error: any) {
@@ -137,6 +157,8 @@ const deleteProduct = async (request: Request) => {
 
 const updateProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
     const newTitle = formData.get("newTitle") as string;
@@ -145,10 +167,14 @@ const updateProduct = async (request: Request) => {
       throw new Error("Product ID and new title are required.");
     }
 
-    const updatedProduct = await ProductService.updateProduct(request, {
-      id: productId,
-      title: newTitle,
-    });
+    const updatedProduct = await ProductService.newUpdateProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+        title: newTitle,
+      },
+    );
 
     return { success: true, updatedProduct };
   } catch (error: any) {
@@ -159,6 +185,8 @@ const updateProduct = async (request: Request) => {
 
 const updateProductStatus = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
     const status = formData.get("status") as string;
@@ -170,10 +198,14 @@ const updateProductStatus = async (request: Request) => {
       );
     }
 
-    const updatedProduct = await ProductService.updateProduct(request, {
-      id: productId,
-      status: status as "ACTIVE" | "DRAFT",
-    });
+    const updatedProduct = await ProductService.newUpdateProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+        status: status as "ACTIVE" | "DRAFT",
+      },
+    );
 
     return { success: true, updatedProduct };
   } catch (error: any) {
@@ -184,18 +216,23 @@ const updateProductStatus = async (request: Request) => {
 
 const populateProduct = async (request: Request) => {
   try {
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     const productId = formData.get("productId") as string;
-    // const productIds = formData.get("productIds") as string;
     if (!productId) throw new Error("Product ID is required to delete.");
 
-    const populatedProduct = await ProductService.populateProduct(request, {
-      id: productId,
-    });
+    const populatedProduct = await ProductService.newPopulateProduct(
+      { admin },
+      request,
+      {
+        id: productId,
+      },
+    );
 
     return { success: true, populatedProduct };
   } catch (error: any) {
-    console.error("Error deleting product:", error);
+    console.error("Error populating product:", error);
     return { success: false, error: error.message };
   }
 };

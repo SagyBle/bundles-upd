@@ -1,5 +1,3 @@
-// import shopify from './shopify'; // Adjust the import path accordingly
-// import { authenticate } from './auth'; // Adjust the import path accordingly
 import { authenticate } from "app/shopify.server";
 
 export async function checkRequestType(request: Request) {
@@ -20,8 +18,10 @@ export async function checkRequestType(request: Request) {
     if (session) isSession = true;
   } catch (error) {}
 
-  if (!isAdmin && !isSession)
-    console.log("Authentication FAILED, no session, no admin.");
+  if (!isAdmin && !isSession) {
+    console.error("❌ Authentication FAILED: No valid session or admin.");
+    throw new Error("Unauthorized: No valid session or admin access.");
+  }
 
   return { isAdmin, isSession, admin, session };
 }

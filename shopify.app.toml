@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f1ba0e069721f93052cfa0eb3b26fc38"
-application_url = "https://introduce-protocols-grade-started.trycloudflare.com"
+application_url = "https://revenue-towards-monitored-spotlight.trycloudflare.com"
 embedded = true
 name = "budnles-upd"
 handle = "budnles-upd"
@@ -27,9 +27,9 @@ scopes = "write_products, read_inventory, write_inventory"
 
 [auth]
 redirect_urls = [
-  "https://introduce-protocols-grade-started.trycloudflare.com/auth/callback",
-  "https://introduce-protocols-grade-started.trycloudflare.com/auth/shopify/callback",
-  "https://introduce-protocols-grade-started.trycloudflare.com/api/auth/callback"
+  "https://revenue-towards-monitored-spotlight.trycloudflare.com/auth/callback",
+  "https://revenue-towards-monitored-spotlight.trycloudflare.com/auth/shopify/callback",
+  "https://revenue-towards-monitored-spotlight.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

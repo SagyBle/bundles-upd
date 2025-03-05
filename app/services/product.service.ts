@@ -1,6 +1,5 @@
 import {
   GRAPHQL_ADJUST_INVENTORY_QUANTITY,
-  // GRAPHQL_CREATE_PRODUCT,
   GRAPHQL_CREATE_PRODUCT_MEDIA,
   GRAPHQL_DELETE_PRODUCT,
   GRAPHQL_GET_PRODUCT_BY_ID,
@@ -15,46 +14,27 @@ import {
 } from "app/graphql/product.queries";
 import { authenticate } from "app/shopify.server";
 import { ProductVariantUpdateInput } from "app/types/product.types";
-import { AdminShopifyService } from "./api/adminShopify.api.service";
-import { checkRequestType } from "app/utils/auth.util";
-import { SessionShopifyService } from "./api/sessionShopify.api.service";
+import { ShopifyService } from "./api/shopify.api.service";
 
-const updateProduct = async (
+const newUpdateProduct = async (
+  auth: any,
   request: Request,
   input: { id: string; title?: string; status?: "ACTIVE" | "DRAFT" },
 ) => {
   try {
-    // ✅ Step 1: Check request type
-    const { isAdmin, isSession } = await checkRequestType(request);
-
     const variables = {
       product: {
-        // ✅ Changed from 'input' to 'product'
         id: input.id,
         ...(input.title && { title: input.title }),
         ...(input.status && { status: input.status }),
       },
     };
 
-    let data: any = null;
-
-    if (isAdmin) {
-      // ✅ Step 2: Execute Admin API request
-      data = await AdminShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_NEW_UPDATE_PRODUCT,
-        variables,
-      );
-    } else if (isSession) {
-      // ✅ Step 3: Execute Session API request
-      data = await SessionShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_NEW_UPDATE_PRODUCT,
-        variables,
-      );
-    } else {
-      throw new Error("Unauthorized: No valid admin or session.");
-    }
+    const data: any = ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_NEW_UPDATE_PRODUCT,
+      variables,
+    );
 
     return data?.productUpdate?.product || null;
   } catch (error) {
@@ -63,41 +43,24 @@ const updateProduct = async (
   }
 };
 
-const updateProductVariants = async (
+const newUpdateProductVariants = async (
+  auth: any,
   request: Request,
   input: { productId: string; variants: ProductVariantUpdateInput[] },
 ) => {
   try {
-    // ✅ Step 1: Check request type
-    const { isAdmin, isSession } = await checkRequestType(request);
+    //   throw new Error("Unauthorized: No valid admin or session.");
+    // }
 
-    let data: any = null;
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_UPDATE_PRODUCT_VARIANTS,
+      {
+        productId: input.productId,
+        variants: input.variants,
+      },
+    );
 
-    if (isAdmin) {
-      // ✅ Step 2: Execute Admin API request
-      data = await AdminShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_UPDATE_PRODUCT_VARIANTS,
-        {
-          productId: input.productId,
-          variants: input.variants,
-        },
-      );
-    } else if (isSession) {
-      // ✅ Step 3: Execute Session API request
-      data = await SessionShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_UPDATE_PRODUCT_VARIANTS,
-        {
-          productId: input.productId,
-          variants: input.variants,
-        },
-      );
-    } else {
-      throw new Error("Unauthorized: No valid admin or session.");
-    }
-
-    // ✅ Step 4: Return updated product variants
     return data?.productVariantsBulkUpdate?.productVariants || null;
   } catch (error) {
     console.error("❌ Error updating product variants:", error);
@@ -105,23 +68,20 @@ const updateProductVariants = async (
   }
 };
 
-const deleteProduct = async (request: Request, input: { id: string }) => {
+const newDeleteProduct = async (
+  auth: any,
+  request: Request,
+  input: { id: string },
+) => {
+  console.log("sagy101", "newDeleteProduct product service!");
+
   try {
-    // Check request type (admin or session)
-    const { isAdmin } = await checkRequestType(request);
-
-    if (!isAdmin) {
-      throw new Error("Unauthorized: Only admin users can delete products.");
-    }
-
-    // Execute the GraphQL mutation via Admin API
-    const data: any = await AdminShopifyService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_DELETE_PRODUCT,
       { id: input.id },
     );
 
-    // Check for GraphQL user errors
     const errors = data?.productDelete?.userErrors;
     if (errors?.length) {
       throw new Error(
@@ -174,34 +134,22 @@ export const getProductMetafields = async (
 };
 
 export const getProductOptions = async (
+  auth: any,
   request: Request,
   input: { id: string },
 ) => {
   try {
-    // ✅ Step 1: Determine if the request is from Admin or Session
-    const { isAdmin, isSession } = await checkRequestType(request);
-
-    if (!isAdmin && !isSession) {
-      throw new Error("Unauthorized: No valid admin or session.");
-    }
-
-    // ✅ Step 2: Choose API Service Based on Request Type
-    const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
-
-    // ✅ Step 3: Execute GraphQL Query
-    const data: any = await apiService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_GET_PRODUCT_OPTIONS,
       { id: input.id },
     );
 
-    // ✅ Step 4: Handle API Errors
     if (!data?.product?.options) {
       console.error("❌ GraphQL Error - No product options returned:", data);
       return [];
     }
 
-    // ✅ Step 5: Return Product Options
     return data.product.options.map((option: any) => ({
       componentOptionId: option.id,
       name: option.name,
@@ -214,20 +162,18 @@ export const getProductOptions = async (
 };
 
 export const getProductDefaultVariantId = async (
+  auth: any,
   request: Request,
-  apiService: typeof AdminShopifyService | typeof SessionShopifyService,
   input: { productId: string },
 ) => {
   try {
-    // Execute GraphQL query using the provided API service
-    const data: any = await apiService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_GET_PRODUCT_DEFAULT_VARIANT_ID,
       { productId: input.productId },
     );
     console.log("sagy29", data);
 
-    // Extract and return the default variant ID
     return data?.product?.variants?.edges?.[0]?.node?.id || null;
   } catch (error) {
     console.error("❌ Error fetching default variant ID:", error);
@@ -235,23 +181,14 @@ export const getProductDefaultVariantId = async (
   }
 };
 
-export const populateProduct = async (
+export const newPopulateProduct = async (
+  auth: any,
   request: Request,
   input: { id: string },
 ) => {
   try {
-    const { isAdmin, isSession } = await checkRequestType(request);
-
-    if (!isAdmin && !isSession) {
-      throw new Error("Unauthorized: No valid admin or session.");
-    }
-
-    // ✅ Step 2: Determine API service based on request type
-    const apiService = isAdmin ? AdminShopifyService : SessionShopifyService;
-
-    // ✅ Step 3: Execute the GraphQL query
-    const data: any = await apiService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_POPULATE_PRODUCT,
       { id: input.id },
     );
@@ -272,7 +209,8 @@ export const populateProduct = async (
   }
 };
 
-export const createProductMedia = async (
+export const newCreateProductMedia = async (
+  auth: any,
   request: Request,
   input: {
     productId: string;
@@ -282,16 +220,14 @@ export const createProductMedia = async (
   try {
     console.log("🚀 Uploading media for product:", input.productId);
 
-    // ✅ Execute GraphQL Mutation via AdminShopifyService
-    const data: any = await AdminShopifyService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_CREATE_PRODUCT_MEDIA,
       input,
     );
 
     console.log("📢 Media Upload Response:", JSON.stringify(data, null, 2));
 
-    // ✅ Extract media details
     const uploadedMedia = data?.productCreateMedia?.media || [];
     const userErrors = data?.productCreateMedia?.userErrors || [];
 
@@ -300,7 +236,6 @@ export const createProductMedia = async (
       return null;
     }
 
-    // ✅ Return list of media IDs and preview URLs
     return uploadedMedia.map((media: any) => ({
       id: media.id,
       previewUrl: media.preview?.image?.originalSrc || "",
@@ -311,15 +246,12 @@ export const createProductMedia = async (
   }
 };
 
-const adjustInventoryQuantity = async (request: Request, input: any) => {
+const newAdjustInventoryQuantity = async (
+  auth: any,
+  request: Request,
+  input: any,
+) => {
   try {
-    // ✅ Step 1: Ensure only Admin access
-    const { isAdmin } = await checkRequestType(request);
-    if (!isAdmin) {
-      throw new Error("Unauthorized: Only admin users can adjust inventory.");
-    }
-
-    // ✅ Step 2: Prepare variables for the GraphQL request
     const variables = {
       input: {
         reason: input.reason || "correction",
@@ -339,9 +271,14 @@ const adjustInventoryQuantity = async (request: Request, input: any) => {
 
     console.log("sagy3", variables);
 
-    // ✅ Step 3: Execute Admin API request
-    const data: any = await AdminShopifyService.executeGraphQL(
-      request,
+    // // ✅ Step 3: Execute Admin API request
+    // const data: any = await AdminShopifyService.executeGraphQL(
+    //   request,
+    //   GRAPHQL_ADJUST_INVENTORY_QUANTITY,
+    //   variables,
+    // );
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_ADJUST_INVENTORY_QUANTITY,
       variables,
     );
@@ -360,23 +297,14 @@ const adjustInventoryQuantity = async (request: Request, input: any) => {
   }
 };
 
-const newCreateProduct = async (request: Request, input: any) => {
+const newCreateProduct = async (auth: any, request: Request, input: any) => {
   try {
-    // ✅ Check if the request is from an admin
-    const { isAdmin } = await checkRequestType(request);
-
-    if (!isAdmin) {
-      throw new Error("Unauthorized: Only admin users can create products.");
-    }
-
-    // ✅ Execute GraphQL Mutation via AdminShopifyService
-    const data: any = await AdminShopifyService.executeGraphQL(
-      request,
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_NEW_CREATE_PRODUCT,
       { product: input },
     );
 
-    // ✅ Check for errors
     if (data?.productCreate?.userErrors?.length) {
       console.error("❌ Shopify Errors:", data.productCreate.userErrors);
       return null;
@@ -389,15 +317,12 @@ const newCreateProduct = async (request: Request, input: any) => {
   }
 };
 
-const updateInventoryItem = async (
+const newUpdateInventoryItem = async (
+  auth: any,
   request: Request,
   input: { id: string; tracked?: boolean },
 ) => {
   try {
-    // ✅ Step 1: Check request type (admin or session)
-    const { isAdmin, isSession } = await checkRequestType(request);
-
-    // ✅ Step 2: Construct GraphQL variables
     const variables = {
       id: input.id,
       input: {
@@ -405,34 +330,18 @@ const updateInventoryItem = async (
       },
     };
 
-    let data: any = null;
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_UPDATE_INVENTORY_ITEM,
+      variables,
+    );
 
-    if (isAdmin) {
-      // ✅ Step 3: Execute Admin API request
-      data = await AdminShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_UPDATE_INVENTORY_ITEM,
-        variables,
-      );
-    } else if (isSession) {
-      // ✅ Step 4: Execute Session API request
-      data = await SessionShopifyService.executeGraphQL(
-        request,
-        GRAPHQL_UPDATE_INVENTORY_ITEM,
-        variables,
-      );
-    } else {
-      throw new Error("Unauthorized: No valid admin or session.");
-    }
-
-    // ✅ Step 5: Handle API errors
     const errors = data?.inventoryItemUpdate?.userErrors || [];
     if (errors.length > 0) {
       console.error("❌ Inventory Update Errors:", errors);
       return null;
     }
 
-    // ✅ Step 6: Return updated inventory item
     return data?.inventoryItemUpdate?.inventoryItem || null;
   } catch (error) {
     console.error("❌ Error updating inventory item:", error);
@@ -442,12 +351,14 @@ const updateInventoryItem = async (
 
 export default {
   newCreateProduct,
-  updateProductVariants,
-  deleteProduct,
-  updateProduct,
+  newUpdateProductVariants,
+  newDeleteProduct,
+  newUpdateProduct,
   getProductMetafields,
-  populateProduct,
-  createProductMedia,
-  adjustInventoryQuantity,
-  updateInventoryItem,
+  newPopulateProduct,
+  newCreateProductMedia,
+  newAdjustInventoryQuantity,
+  newUpdateInventoryItem,
+  getProductDefaultVariantId,
+  getProductOptions,
 };

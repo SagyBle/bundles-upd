@@ -1,15 +1,16 @@
 import { GRAPHQL_GET_PRODUCTS_BY_TAG } from "app/graphql/pool.queries";
 import { GRAPHQL_UPDATE_RELATED_STONES_METAFIELD } from "app/graphql/product.queries";
-import { AdminShopifyService } from "app/services/api/adminShopify.api.service";
+import { ShopifyService } from "./api/shopify.api.service";
 
 export const updateRelatedStonesMetafield = async (
+  auth: any,
   request: Request,
   productId: string,
   relatedProductIds: string[],
 ) => {
   try {
-    const response = await AdminShopifyService.executeGraphQL(
-      request,
+    const response = await ShopifyService.executeGraphQL(
+      auth,
       GRAPHQL_UPDATE_RELATED_STONES_METAFIELD,
       {
         productId,
@@ -28,11 +29,15 @@ export const updateRelatedStonesMetafield = async (
   }
 };
 
-export const fetchProductsByTag = async (request: any, queryString: string) => {
+export const fetchProductsByTag = async (
+  auth: any,
+  request: any,
+  queryString: string,
+) => {
   const variables = { query: queryString };
 
-  const data: any = await AdminShopifyService.executeGraphQL(
-    request,
+  const data: any = await ShopifyService.executeGraphQL(
+    auth,
     GRAPHQL_GET_PRODUCTS_BY_TAG,
     variables,
   );

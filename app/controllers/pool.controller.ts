@@ -11,15 +11,10 @@ import { parseRingMetafields } from "app/utils/product.util";
 import { generateStoneQuery } from "app/utils/metafieldsToQuery";
 
 const updatePoolDataType1 = async (request: Request) => {
-  console.log("Updating pool Type 1...");
   return { success: true, message: "Pool Type 1 updated successfully." };
 };
 
 const updatePoolDataType2 = async (request: Request) => {
-  console.log("sagy2");
-  console.log("Updating pool Type 2...");
-  console.log(Tag.generate(TagKey.Weight, "1.23"));
-
   const query = new GraphQLFilterBuilder()
     .addOrGroup([
       Tag.generate(TagKey.Color, TagValue.Color.D),
@@ -31,14 +26,13 @@ const updatePoolDataType2 = async (request: Request) => {
     ])
     .build();
 
-  console.log("sagy3", query);
-
   return { success: true, query, message: "Pool Type 2 updated successfully." };
 };
 
 const updateRelatedStones = async (request: Request) => {
   try {
-    // ✅ Business logic is handled here
+    const { admin } = await checkRequestType(request);
+
     const formData = await request.formData();
     let productId = formData.get("productId") as string;
     let relatedStones = formData.get("relatedStones") as string;
@@ -55,8 +49,8 @@ const updateRelatedStones = async (request: Request) => {
       formatGid(id, ShopifyResourceType.Product),
     );
 
-    // ✅ API call is delegated to the service
     const response = await PoolService.updateRelatedStonesMetafield(
+      { admin },
       request,
       productId,
       relatedProductIds,
@@ -74,23 +68,23 @@ const updateRelatedStones = async (request: Request) => {
 };
 
 /**
- * This new function fetches products by tag criteria.
+ * This function fetches products by tag criteria.
  * For example, the query might be something like:
  *   (tag:Color_E) AND (tag:Shape_Marquise)
  */
-
 const fetchProductsByTag = async (request: Request) => {
-  console.log("sagy12");
-
   try {
-    const { isAdmin } = await checkRequestType(request);
-    if (!isAdmin) throw new Error("Forbidden request");
+    const { admin } = await checkRequestType(request);
 
     const formData = await request.formData();
     let queryString = formData.get("queryString") as string;
     if (!queryString) throw new Error("Query string is required.");
 
-    const products = await PoolService.fetchProductsByTag(request, queryString);
+    const products = await PoolService.fetchProductsByTag(
+      { admin },
+      request,
+      queryString,
+    );
 
     return {
       success: true,
@@ -104,28 +98,26 @@ const fetchProductsByTag = async (request: Request) => {
 
 const generateRingQuery = async (request: Request) => {
   try {
-    const { isAdmin } = await checkRequestType(request);
-    if (!isAdmin) throw new Error("Forbidden request");
+    const { admin } = await checkRequestType(request);
 
     const formData = await request.formData();
     let productId = formData.get("productId") as string;
     if (!productId) throw new Error("Ring productId is required.");
 
     productId = formatGid(productId, ShopifyResourceType.Product);
-    console.log("sagy27", productId);
 
     const metafields = await ProductService.getProductMetafields(request, {
       productId,
     });
 
-    console.log("sagy30", metafields);
-    console.log("sagy31", parseRingMetafields(metafields));
     const parsedRingMetafields = parseRingMetafields(metafields);
     const queryString = generateStoneQuery(parsedRingMetafields);
-    console.log("sagy32", queryString);
 
-    const products = await PoolService.fetchProductsByTag(request, queryString);
-    console.log("sagy33", products);
+    const products = await PoolService.fetchProductsByTag(
+      { admin },
+      request,
+      queryString,
+    );
 
     const relatedProductIds = products.map((stone: any) => {
       let stoneId = stone.node.id;
@@ -133,9 +125,8 @@ const generateRingQuery = async (request: Request) => {
       return stoneId;
     });
 
-    console.log("sagy34", relatedProductIds);
-
     PoolService.updateRelatedStonesMetafield(
+      { admin },
       request,
       productId,
       relatedProductIds,
