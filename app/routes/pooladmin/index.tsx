@@ -49,6 +49,21 @@ export default function PoolAdminPage() {
   const [relatedStones, setRelatedStones] = useState<string[]>([]);
   const [stoneInput, setStoneInput] = useState("");
   const [ringProductId, setRingProductId] = useState("");
+  const [updatedRingData, setUpdatedRingData] = useState();
+  const [updatedRingMetafields, setUpdatedRingMetafields] = useState();
+  const [updatedRelatedStones, setUpdatedRelatedStones] = useState([]);
+
+  useEffect(() => {
+    if (fetcher?.data?.ring) {
+      setUpdatedRingData(fetcher.data?.ring);
+    }
+    if (fetcher?.data?.relatedStones) {
+      setUpdatedRelatedStones(fetcher.data?.relatedStones);
+    }
+    if (fetcher?.data?.parsedRingMetafields) {
+      setUpdatedRingMetafields(fetcher.data?.parsedRingMetafields);
+    }
+  }, [fetcher.data, shopify]);
 
   useEffect(() => {
     if (fetcher.data?.message) {
@@ -125,26 +140,7 @@ export default function PoolAdminPage() {
             <Button onClick={updatePoolDataType2}>Update Pool Type 2</Button>
             <Button onClick={fetchProductsByTag}>Fetch Products By Tag</Button>
           </Card>
-          <Card>
-            <Text as="h2" variant="headingMd">
-              Generate Query from Ring Metafields
-            </Text>
-            <Text as="p">
-              Provide a ring product ID to generate a query based on its
-              metafields.
-            </Text>
-
-            <TextField
-              label="Ring Product ID for Metafields"
-              value={ringProductId}
-              onChange={(value) => setRingProductId(value)}
-              autoComplete="off"
-              placeholder="Enter ring product ID"
-            />
-            <Button onClick={generateQueryFromMetafields}>
-              Generate Query from Metafields
-            </Button>
-          </Card>
+          <br />
           <Card>
             <Text as="h2" variant="headingMd">
               Update Related Stones
@@ -179,7 +175,137 @@ export default function PoolAdminPage() {
             )}
 
             <Button onClick={updateRelatedStones}>Update Related Stones</Button>
+            {/* Display Updated Ring Data */}
+            <br />
           </Card>
+          <br />
+          <Card>
+            <Text as="h2" variant="headingMd">
+              Assgin Related Stones To Ring
+            </Text>
+            <Text as="p">
+              Provide a ring product ID to assign related stones based on ring
+              metafields.
+            </Text>
+
+            <TextField
+              label="Ring Product ID for Metafields"
+              value={ringProductId}
+              onChange={(value) => setRingProductId(value)}
+              autoComplete="off"
+              placeholder="Enter ring product ID"
+            />
+            <Button onClick={generateQueryFromMetafields}>
+              Assign Related Stones
+            </Button>
+          </Card>
+          {updatedRingData && (
+            <Card>
+              <Text as="h2" variant="headingMd">
+                Ring Details
+              </Text>
+              <Card padding="400">
+                <Text as="p">ID: {updatedRingData.id}</Text>
+                <Text as="p">Title: {updatedRingData.title}</Text>
+                <Text as="p">
+                  Description: {updatedRingData.description || "No description"}
+                </Text>
+                <Text as="p">Vendor: {updatedRingData.vendor}</Text>
+                <Text as="p">
+                  Product Type: {updatedRingData.productType || "N/A"}
+                </Text>
+                <Text as="p">
+                  Created At:{" "}
+                  {new Date(updatedRingData.createdAt).toLocaleString()}
+                </Text>
+                <Text as="p">
+                  Updated At:{" "}
+                  {new Date(updatedRingData.updatedAt).toLocaleString()}
+                </Text>
+              </Card>
+              {updatedRingData.images?.edges?.length > 0 && (
+                <Card padding="400">
+                  <Text as="h3">Images:</Text>
+                  <InlineStack gap="300">
+                    {updatedRingData.images.edges.map(
+                      (image: any, index: number) => (
+                        <img
+                          key={index}
+                          src={image.node.originalSrc}
+                          alt="Ring Image"
+                          width="100"
+                        />
+                      ),
+                    )}
+                  </InlineStack>
+                </Card>
+              )}
+            </Card>
+          )}
+          {updatedRingMetafields && (
+            <Card>
+              <Text as="h2" variant="headingMd">
+                Ring Metafields
+              </Text>
+              <Card padding="400">
+                <Text as="h3">Stones Shapes:</Text>
+                <InlineStack gap="300">
+                  {updatedRingMetafields.stonesShapes?.map(
+                    (shape: string, index: number) => (
+                      <Card key={index}>
+                        <Text as="p">{shape}</Text>
+                      </Card>
+                    ),
+                  )}
+                </InlineStack>
+
+                <Text as="h3">Stones Weights:</Text>
+                <InlineStack gap="300">
+                  {updatedRingMetafields.stonesWeights?.map(
+                    (weight: string, index: number) => (
+                      <Card key={index}>
+                        <Text as="p">{weight} ct</Text>
+                      </Card>
+                    ),
+                  )}
+                </InlineStack>
+
+                <Text as="h3">Stones Colors:</Text>
+                <InlineStack gap="300">
+                  {updatedRingMetafields.stonesColors?.map(
+                    (color: string, index: number) => (
+                      <Card key={index}>
+                        <Text as="p">{color}</Text>
+                      </Card>
+                    ),
+                  )}
+                </InlineStack>
+              </Card>
+            </Card>
+          )}
+
+          {/* Display Related Stones Data */}
+          {updatedRelatedStones.length > 0 && (
+            <Card>
+              <Text as="h2" variant="headingMd">
+                Related Stones Added to The Ring:
+              </Text>
+              <InlineStack gap="300">
+                {updatedRelatedStones.map((stone: any, index: number) => (
+                  <Card key={index}>
+                    <Text as="p">ID: {stone.node.id}</Text>
+                    <Text as="p">Title: {stone.node.title}</Text>
+                    <Text as="p">
+                      Description: {stone.node.description || "No description"}
+                    </Text>
+                    <Text as="p">
+                      Tags: {stone.node.tags?.join(", ") || "No tags"}
+                    </Text>
+                  </Card>
+                ))}
+              </InlineStack>
+            </Card>
+          )}
         </Layout.Section>
       </Layout>
     </Page>

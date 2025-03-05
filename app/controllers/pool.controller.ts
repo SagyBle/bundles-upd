@@ -119,6 +119,10 @@ const generateRingQuery = async (request: Request) => {
       queryString,
     );
 
+    const ring = await ProductService.newPopulateProduct({ admin }, request, {
+      id: productId,
+    });
+
     const relatedProductIds = products.map((stone: any) => {
       let stoneId = stone.node.id;
       stoneId = formatGid(stoneId, ShopifyResourceType.Product);
@@ -132,9 +136,17 @@ const generateRingQuery = async (request: Request) => {
       relatedProductIds,
     );
 
+    console.log(
+      "sagy30",
+      { ring, relatedStones: JSON.stringify(products) },
+      parsedRingMetafields,
+    );
+
     return {
       success: true,
-      products,
+      ring,
+      relatedStones: products,
+      parsedRingMetafields,
     };
   } catch (error: any) {
     console.error("Error fetching products by tag:", error);

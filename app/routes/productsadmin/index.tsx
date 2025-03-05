@@ -159,7 +159,29 @@ export default function ProductsPage() {
                     borderColor="border"
                   >
                     <Text as="h3" variant="headingMd">
-                      Product Data
+                      Created Product Data
+                    </Text>
+                    <Text as="p">
+                      <b>Id:</b> {fetcher.data?.product?.id}
+                    </Text>
+                    <Text as="p">
+                      <b>Title:</b> {fetcher.data?.product?.title}
+                    </Text>
+                  </Box>
+                )}
+                {fetcher.data?.deletedProductId && (
+                  <Box
+                    padding="400"
+                    background="bg-surface-active"
+                    borderWidth="025"
+                    borderRadius="200"
+                    borderColor="border"
+                  >
+                    <Text as="h3" variant="headingMd">
+                      Deleted Product data:
+                    </Text>
+                    <Text as="p">
+                      <b>Id:</b> {fetcher.data?.deletedProductId}
                     </Text>
                   </Box>
                 )}
