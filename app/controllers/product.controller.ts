@@ -40,7 +40,7 @@ const createProduct = async (request: Request) => {
         alt: title,
         mediaContentType: "IMAGE",
         originalSource:
-          "https://media.istockphoto.com/id/484234714/vector/example-free-grunge-retro-blue-isolated-stamp.jpg?s=612x612&w=0&k=20&c=97KgKGpcAKnn50Ubd8PawjUybzIesoXws7PdU_MJGzE=",
+          "https://ilabdiamonds.com/wp-content/uploads/2021/10/%D7%99%D7%94%D7%9C%D7%95%D7%9D-%D7%9E%D7%A2%D7%91%D7%93%D7%94-%D7%9E%D7%A8%D7%A7%D7%99%D7%96%D7%94.png",
       },
     ];
 
