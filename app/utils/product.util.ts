@@ -33,3 +33,19 @@ export const parseRingMetafields = (dataMetafields: Array<any>) => {
 
   return { stonesShapes, stonesWeights, stonesColors };
 };
+
+export function generateDiamondTitle({
+  weight,
+  color,
+  shape,
+  cut,
+  clarity,
+}: {
+  weight: number | string;
+  color: string;
+  shape: string;
+  cut: string;
+  clarity: string;
+}): string {
+  return `${weight}ct ${color} ${shape}, ${cut}, ${clarity}`;
+}

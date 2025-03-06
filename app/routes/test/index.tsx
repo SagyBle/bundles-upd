@@ -20,7 +20,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  console.log("sagy301");
+  // Test here
+
+  // End Test here
 
   // ✅ Handle preflight OPTIONS request for CORS
   if (request.method === "OPTIONS") {

@@ -2,6 +2,7 @@ import { TagKey, TagValue } from "app/enums/tag.enums";
 import { ShopifyService } from "app/services/api/shopify.api.service";
 import ProductService from "app/services/product.service";
 import { checkRequestType } from "app/utils/auth.util";
+import { generateDiamondTitle } from "app/utils/product.util";
 import { Tag } from "app/utils/Tag.util";
 
 const createProduct = async (request: Request) => {
@@ -19,11 +20,20 @@ const createProduct = async (request: Request) => {
     // Type check - Approved Clarity
     const clarity = "VS1";
 
+    const title = generateDiamondTitle({
+      weight,
+      color,
+      shape,
+      cut,
+      clarity,
+    });
+
     const imageUrl = "";
     const alt = "";
     const price = "6867.00";
     // build util function title builder
-    const title = `${weight}ct ${color} ${shape}, ${cut}, ${clarity}`;
+    // const title = `${weight}ct ${color} ${shape}, ${cut}, ${clarity}`;
+
     // Type check - Media, understnad which other media content types there are
     const media = [
       {
