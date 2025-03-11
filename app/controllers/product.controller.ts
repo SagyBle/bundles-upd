@@ -7,42 +7,61 @@ import { Tag } from "app/utils/Tag.util";
 
 const createProduct = async (request: Request) => {
   try {
-    const { admin } = await checkRequestType(request);
+    const { admin, nodejsAuth } = await checkRequestType(request);
 
-    // Type check: shape that we allow
-    const shape = "Marquise";
-    // Make sure Weight tag is down to 2.6
-    const weight = "2.63";
-    // Range Check - between D to Z, only one big letter
-    const color = "G";
-    // Type check - Approved cut
-    const cut = "Excellent";
-    // Type check - Approved Clarity
-    const clarity = "VS1";
+    // ✅ Parse request body
+    const body = await request.json(); // Required in Remix!
 
-    const title = generateDiamondTitle({
+    // ✅ Extract values safely
+    const { shape, weight, color, cut, clarity, imageUrl, alt, price, media } =
+      body;
+
+    console.log("Parsed Data: sagy14", {
+      shape,
       weight,
       color,
-      shape,
       cut,
       clarity,
+      imageUrl,
+      alt,
+      price,
+      media,
     });
 
-    const imageUrl = "";
-    const alt = "";
-    const price = "6867.00";
-    // build util function title builder
-    // const title = `${weight}ct ${color} ${shape}, ${cut}, ${clarity}`;
+    // // Type check: shape that we allow
+    // const shape = "Marquise";
+    // // Make sure Weight tag is down to 2.6
+    // const weight = "2.63";
+    // // Range Check - between D to Z, only one big letter
+    // const color = "G";
+    // // Type check - Approved cut
+    // const cut = "Excellent";
+    // // Type check - Approved Clarity
+    // const clarity = "VS1";
 
-    // Type check - Media, understnad which other media content types there are
-    const media = [
-      {
-        alt: title,
-        mediaContentType: "IMAGE",
-        originalSource:
-          "https://ilabdiamonds.com/wp-content/uploads/2021/10/%D7%99%D7%94%D7%9C%D7%95%D7%9D-%D7%9E%D7%A2%D7%91%D7%93%D7%94-%D7%9E%D7%A8%D7%A7%D7%99%D7%96%D7%94.png",
-      },
-    ];
+    // const title = generateDiamondTitle({
+    //   weight,
+    //   color,
+    //   shape,
+    //   cut,
+    //   clarity,
+    // });
+
+    // const imageUrl = "";
+    // const alt = "";
+    // const price = "6867.00";
+    // // build util function title builder
+    const title = `${weight}ct ${color} ${shape}, ${cut}, ${clarity}`;
+
+    // // Type check - Media, understnad which other media content types there are
+    // const media = [
+    //   {
+    //     alt: title,
+    //     mediaContentType: "IMAGE",
+    //     originalSource:
+    //       "https://ilabdiamonds.com/wp-content/uploads/2021/10/%D7%99%D7%94%D7%9C%D7%95%D7%9D-%D7%9E%D7%A2%D7%91%D7%93%D7%94-%D7%9E%D7%A8%D7%A7%D7%99%D7%96%D7%94.png",
+    //   },
+    // ];
 
     const tags = [
       Tag.generate(TagKey.Shape, shape),
@@ -74,11 +93,15 @@ const createProduct = async (request: Request) => {
 
     console.log("sagy3");
 
-    const product = await ProductService.newCreateProduct({ admin }, request, {
-      title,
-      tags,
-      metafields,
-    });
+    const product = await ProductService.newCreateProduct(
+      { admin, nodejsAuth },
+      request,
+      {
+        title,
+        tags,
+        metafields,
+      },
+    );
 
     const variantId = product.variants.edges[0]?.node?.id;
     const inventoryItemId = product.variants.edges[0]?.node.inventoryItem.id;
@@ -86,7 +109,7 @@ const createProduct = async (request: Request) => {
     console.log("sagy149", product.id);
 
     const uploadedMedia = await ProductService.newCreateProductMedia(
-      { admin },
+      { admin, nodejsAuth },
       request,
       {
         productId: product.id,
@@ -106,7 +129,7 @@ const createProduct = async (request: Request) => {
 
     if (!variantId) throw new Error("Failed to retrieve product variant ID.");
     const updatedVariant = await ProductService.newUpdateProductVariants(
-      { admin },
+      { admin, nodejsAuth },
       request,
       {
         productId: product.id,
@@ -115,7 +138,7 @@ const createProduct = async (request: Request) => {
     );
 
     const updatedInventory = await ProductService.newAdjustInventoryQuantity(
-      { admin },
+      { admin, nodejsAuth },
       request,
       {
         inventoryItemId,
@@ -125,7 +148,7 @@ const createProduct = async (request: Request) => {
     );
 
     const updatedInventoryItem = await ProductService.newUpdateInventoryItem(
-      { admin },
+      { admin, nodejsAuth },
       request,
       {
         id: inventoryItemId,
