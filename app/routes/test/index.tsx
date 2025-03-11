@@ -29,16 +29,6 @@ export async function action({ request }: ActionFunctionArgs) {
     return cors(request, json(ApiResponse.success("Preflight check passed")));
   }
 
-  // ✅ Check request type (Admin or Session)
-  const requestObject = await checkRequestType(request);
-  console.log(
-    "sagy400",
-    "isAdmin:",
-    requestObject.isAdmin,
-    "isSession:",
-    requestObject.isSession,
-  );
-
   try {
     // ✅ Parse incoming request data
     const data = { data: "all good king" };
@@ -47,15 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
     return cors(
       request,
-      json(
-        ApiResponse.success("Request processed successfully", {
-          // requestData: data,
-          requestType: {
-            isAdmin: requestObject.isAdmin,
-            isSession: requestObject.isSession,
-          },
-        }),
-      ),
+      json(ApiResponse.success("Request processed successfully", { data })),
     );
   } catch (error: any) {
     console.error("❌ Error processing request:", error);
