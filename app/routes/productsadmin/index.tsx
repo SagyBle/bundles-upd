@@ -29,7 +29,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const url = new URL(request.url);
   const actionType = url.searchParams.get("action");
   if (request.method === "POST") {
-    return ProductController.createProduct(request);
+    return await ProductController.createProduct(request);
   } else if (request.method === "DELETE") {
     return ProductController.deleteProduct(request);
   } else if (request.method === "PUT" && actionType === "status") {

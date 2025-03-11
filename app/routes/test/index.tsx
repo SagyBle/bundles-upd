@@ -31,6 +31,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     // ✅ Parse incoming request data
+    const { isNodejsAuth, nodejsAuth } = await checkRequestType(request);
     const data = { data: "all good king" };
 
     // console.log("sagy11", data);
