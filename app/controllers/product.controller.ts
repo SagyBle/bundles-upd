@@ -1,8 +1,6 @@
 import { TagKey, TagValue } from "app/enums/tag.enums";
-import { ShopifyService } from "app/services/api/shopify.api.service";
 import ProductService from "app/services/product.service";
 import { checkRequestType } from "app/utils/auth.util";
-import { generateDiamondTitle } from "app/utils/product.util";
 import { Tag } from "app/utils/Tag.util";
 
 const createProduct = async (request: Request) => {
@@ -10,7 +8,7 @@ const createProduct = async (request: Request) => {
     const { admin, nodejsAuth } = await checkRequestType(request);
 
     // ✅ Parse request body
-    const body = await request.json(); // Required in Remix!
+    const body = await request.json();
 
     // ✅ Extract values safely
     const { shape, weight, color, cut, clarity, imageUrl, alt, price, media } =
