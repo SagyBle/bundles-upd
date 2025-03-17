@@ -14,6 +14,11 @@
   Include Additional Product
 </button>
 
+<!-- Toggle Button for Mutual Wedding Band -->
+<button id="toggle-wedding-band" class="btn-secondary">
+  Include Mutual Wedding Band
+</button>
+
 {% if product.metafields.custom.relatedstones %}
   {% assign rstones = product.metafields.custom.relatedstones.value %}
 
@@ -38,11 +43,13 @@
   window.currentProductId = "{{ product.id }}";
   let chosenStone = null;
   
-  // Define additional product ID (converted to GID format)
-  const additionalProductId = "10100360446239";
-  
+  // Define product IDs (converted to Shopify GID format)
+  const additionalProductId = "10100360446239"; // Extra product
+  const weddingBandVariantId = "50741704261919"; // Mutual Wedding Band
+
   // Initial state: Not included by default
   window.includeAdditionalProduct = false;
+  window.includeWeddingBand = false;
 
   document.addEventListener("DOMContentLoaded", function () {
     // Select all stone cards
@@ -60,13 +67,23 @@
     });
 
     // Handle additional product toggle button
-    const toggleButton = document.getElementById("toggle-additional-product");
-    toggleButton.addEventListener("click", function () {
+    const toggleAdditionalButton = document.getElementById("toggle-additional-product");
+    toggleAdditionalButton.addEventListener("click", function () {
       window.includeAdditionalProduct = !window.includeAdditionalProduct;
-      toggleButton.innerText = window.includeAdditionalProduct 
+      toggleAdditionalButton.innerText = window.includeAdditionalProduct 
         ? "✅ Additional Product Included" 
         : "Include Additional Product";
       console.log("🔄 Additional Product:", window.includeAdditionalProduct);
+    });
+
+    // Handle wedding band toggle button
+    const toggleWeddingBandButton = document.getElementById("toggle-wedding-band");
+    toggleWeddingBandButton.addEventListener("click", function () {
+      window.includeWeddingBand = !window.includeWeddingBand;
+      toggleWeddingBandButton.innerText = window.includeWeddingBand 
+        ? "✅ Wedding Band Included" 
+        : "Include Mutual Wedding Band";
+      console.log("🔄 Wedding Band:", window.includeWeddingBand);
     });
   });
 
@@ -136,78 +153,64 @@
     }
   };
 
-  const addBundleToCart = async (variantId, startTime, maxDuration = 3000, retryDelay = 200) => {
+  const addBundleToCart = async (variantId, startTime) => {
     console.log("🚀 Adding bundle to cart...", variantId);
-    const endTime = Date.now() + maxDuration;
-
-    while (Date.now() < endTime) {
-      try {
-        console.log("🚀 Trying to add bundle to cart");
-
-        const response = await fetch("/cart/add.js", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: variantId,
-            quantity: 1,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to add product to cart: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data && Object.keys(data).length > 0) {
-          console.log("✅ Product added to cart:", data);
-          alert("✅ Bundle added to cart!");
-          return;
-        } else {
-          console.warn("⚠️ Empty response received. Retrying...");
-        }
-      } catch (error) {
-        console.error("❌ Error adding product to cart:", error);
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, retryDelay));
-    }
-
-    console.error("⏳ Max retries reached. Bundle not added.");
-    alert("❌ Error adding bundle to cart. Please try again.");
-  };
-
-  const testProxy = async () => {
-    console.log("🚀 Sending request...", window.currentProductId);
-
-    const requestBody = {
-      message: "Hello from Shopify Extension!",
-      user: {
-        id: "12345",
-        name: "Sagy Blecher",
-      }
-    };
 
     try {
-      const response = await fetch("https://sagy-test-academy.myshopify.com/apps/create-bundle-button/test", {
+      const response = await fetch("/cart/add.js", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          id: variantId,
+          quantity: 1,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
+        throw new Error(`Failed to add product to cart: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("✅ Response:", data);
-      alert(`✅ Success: ${data.message}`);
+      console.log("✅ Product added to cart:", data);
+      alert("✅ Bundle added to cart!");
+
+      // Add Wedding Band separately if toggled on
+      if (window.includeWeddingBand) {
+        addWeddingBandToCart();
+      }
     } catch (error) {
-      console.error("❌ Fetch Error:", error);
-      alert(`❌ Error: ${error.message}`);
+      console.error("❌ Error adding product to cart:", error);
+      alert("❌ Error adding bundle to cart. Please try again.");
+    }
+  };
+
+  const addWeddingBandToCart = async () => {
+    console.log("🚀 Adding Wedding Band separately to cart...", weddingBandVariantId);
+
+    try {
+      const response = await fetch("/cart/add.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: weddingBandVariantId,
+          quantity: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add Wedding Band to cart: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Wedding Band added to cart:", data);
+      alert("✅ Wedding Band added to cart!");
+    } catch (error) {
+      console.error("❌ Error adding Wedding Band to cart:", error);
+      alert("❌ Error adding Wedding Band. Please try again.");
     }
   };
 </script>
