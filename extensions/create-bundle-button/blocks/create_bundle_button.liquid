@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="{{ 'create-bundle-styles.css' | asset_url }}">
 
-
-<p>hello world!</p>
+<p>Hello world!!!</p>
 
 <button id="create-bundle-button" onclick="createBundle()" class="btn-primary">
   Create Bundle
@@ -10,27 +9,24 @@
   Test!
 </button>
 
+<!-- Toggle Button for Additional Product -->
+<button id="toggle-additional-product" class="btn-secondary">
+  Include Additional Product
+</button>
+
 {% if product.metafields.custom.relatedstones %}
   {% assign rstones = product.metafields.custom.relatedstones.value %}
 
   <div class="stone-container">
     {% for p in rstones %}
       <div class="stone-card" data-id="{{ p.id }}" data-carat="{{ p.carat }}" data-color="{{ p.color }}" data-cut="{{ p.cut }}" data-clarity="{{ p.clarity }}">
-        <!-- Product Image -->
         <img src="{{ p.featured_image | image_url: width: 200 }}" 
               alt="{{ p.title }}" 
               height="auto"
-              width="auto"
-              >
+              width="auto">
 
-        <h3>
-          {{ p.title }}
-        </h3>
-
-        <!-- Product Price -->
-        <p>
-          {{ p.price | money }}
-        </p>
+        <h3>{{ p.title }}</h3>
+        <p>{{ p.price | money }}</p>
       </div>
     {% endfor %}
   </div>
@@ -41,22 +37,38 @@
 <script>
   window.currentProductId = "{{ product.id }}";
   let chosenStone = null;
+  
+  // Define additional product ID (converted to GID format)
+  const additionalProductId = "10100360446239";
+  
+  // Initial state: Not included by default
+  window.includeAdditionalProduct = false;
 
   document.addEventListener("DOMContentLoaded", function () {
-  // Select all stone cards
-  const stoneCards = document.querySelectorAll(".stone-card");
+    // Select all stone cards
+    const stoneCards = document.querySelectorAll(".stone-card");
 
-  stoneCards.forEach((card) => {
-    card.addEventListener("click", function () {
-      chosenStone = {
-        productId: this.getAttribute("data-id"),
-        title: this.querySelector("h3").innerText
-      };
+    stoneCards.forEach((card) => {
+      card.addEventListener("click", function () {
+        chosenStone = {
+          productId: this.getAttribute("data-id"),
+          title: this.querySelector("h3").innerText
+        };
 
-      console.log("✅ Stone selected:", chosenStone);
+        console.log("✅ Stone selected:", chosenStone);
+      });
+    });
+
+    // Handle additional product toggle button
+    const toggleButton = document.getElementById("toggle-additional-product");
+    toggleButton.addEventListener("click", function () {
+      window.includeAdditionalProduct = !window.includeAdditionalProduct;
+      toggleButton.innerText = window.includeAdditionalProduct 
+        ? "✅ Additional Product Included" 
+        : "Include Additional Product";
+      console.log("🔄 Additional Product:", window.includeAdditionalProduct);
     });
   });
-});
 
   const createBundle = async (secondProductId) => {
     const startTime = Date.now();  
@@ -70,11 +82,19 @@
       return;
     }
 
-    console.log("Creating bundle with:", { firstProductId: window.currentProductId, secondProductId });
-
     const productName = `💍 {{ product.title | escape }}`;
     const stoneTitle = `💎 ${chosenStone.title}`;
     const bundleTitle = `${productName} ${stoneTitle}`;
+    
+    // Construct productsIds array with current product and selected stone
+    let productsIds = [window.currentProductId, secondProductId];
+
+    // Add additional product if toggled on
+    if (window.includeAdditionalProduct) {
+      productsIds.push(additionalProductId);
+    }
+
+    console.log("Creating bundle with:", productsIds);
 
     try {
       const responseBundle = await fetch("https://sagy-test-academy.myshopify.com/apps/create-bundle-button/bundlespublic", {
@@ -84,8 +104,7 @@
           "Access-Control-Allow-Origin": "*",
         },
         body: JSON.stringify({
-          firstProductId: window.currentProductId,
-          secondProductId,
+          productsIds,
           bundleTitle
         }),
       });
@@ -97,7 +116,6 @@
       const dataBundle = await responseBundle.json();
       console.log("✅ sagy200 Bundle response:", dataBundle);
 
-      // Extract variantIdNumeric safely
       const variantId = dataBundle?.data?.variantId;
       const variantIdNumeric = dataBundle?.data?.variantIdNumeric;
 
@@ -110,7 +128,7 @@
 
       setTimeout(() => {
         addBundleToCart(variantIdNumeric, startTime);
-      }, 1200);
+      }, 1000);
 
     } catch (error) {
       console.error("❌ Fetch Error:", error);
@@ -118,17 +136,11 @@
     }
   };
 
-  // Function to add bundle to cart
-  const addBundleToCart = async (variantId, startTime,maxDuration = 3000, retryDelay = 200) => {
-    console.log("🚀 Waiting before adding bundle to cart...", variantId);
-    
-    // Wait initially before starting retries
+  const addBundleToCart = async (variantId, startTime, maxDuration = 3000, retryDelay = 200) => {
+    console.log("🚀 Adding bundle to cart...", variantId);
+    const endTime = Date.now() + maxDuration;
 
-    console.log("🚀 Adding bundle to cart now...", variantId);
-    const startTimeCart = Date.now();
-    const endTimeCart = startTimeCart + maxDuration;
-
-    while (Date.now() < endTimeCart) {
+    while (Date.now() < endTime) {
       try {
         console.log("🚀 Trying to add bundle to cart");
 
@@ -148,10 +160,8 @@
         }
 
         const data = await response.json();
-
         if (data && Object.keys(data).length > 0) {
-          const elapsedTime = (Date.now() - startTime) / 1000;
-          console.log("✅ Product added to cart:", data, "Total time:", elapsedTime);
+          console.log("✅ Product added to cart:", data);
           alert("✅ Bundle added to cart!");
           return;
         } else {
@@ -207,7 +217,7 @@
   "name": "Create Bundle Button",
   "target": "section",
   "settings": [
-    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "product", "id": "product", "label": "Product", "autofill": true },
     { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }
   ]
 }
