@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f1ba0e069721f93052cfa0eb3b26fc38"
-application_url = "https://dish-link-lets-assisted.trycloudflare.com"
+application_url = "https://f-master-thongs-there.trycloudflare.com"
 embedded = true
 name = "budnles-upd"
 handle = "budnles-upd"
@@ -27,9 +27,9 @@ scopes = "write_products, read_inventory, write_inventory"
 
 [auth]
 redirect_urls = [
-  "https://dish-link-lets-assisted.trycloudflare.com/auth/callback",
-  "https://dish-link-lets-assisted.trycloudflare.com/auth/shopify/callback",
-  "https://dish-link-lets-assisted.trycloudflare.com/api/auth/callback"
+  "https://f-master-thongs-there.trycloudflare.com/auth/callback",
+  "https://f-master-thongs-there.trycloudflare.com/auth/shopify/callback",
+  "https://f-master-thongs-there.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

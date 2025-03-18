@@ -1,59 +1,57 @@
 import { TagKey, TagValue } from "app/enums/tag.enums";
 import { ShopifyService } from "app/services/api/shopify.api.service";
 import ProductService from "app/services/product.service";
+import { Stone, StoneSchema } from "app/types/zod/schemas/stone.zod.schema";
 import { checkRequestType } from "app/utils/auth.util";
 import { generateDiamondTitle } from "app/utils/product.util";
 import { Tag } from "app/utils/Tag.util";
+import { z } from "zod";
 
 const createProduct = async (request: Request) => {
+  console.log("sagy123");
+
   try {
     const { admin, nodejsAuth } = await checkRequestType(request);
 
-    // ✅ Parse request body
-    const body = await request.json(); // Required in Remix!
+    const body = await request.json();
+    // const stone: Stone = body;
 
     // ✅ Extract values safely
-    const { shape, weight, color, cut, clarity, imageUrl, alt, price, media } =
-      body;
+    const { shape, weight, color, cut, clarity, price, media } = body;
+    const stone = { shape, weight, color, cut, clarity, price, media };
 
-    console.log("Parsed Data: sagy14", {
-      shape,
-      weight,
-      color,
-      cut,
-      clarity,
-      imageUrl,
-      alt,
-      price,
-      media,
-    });
+    // console.log("Parsed Data: sagy14", {
+    //   shape,
+    //   weight,
+    //   color,
+    //   cut,
+    //   clarity,
+    //   imageUrl,
+    //   alt,
+    //   price,
+    //   media,
+    // });
 
     // // Type check: shape that we allow
     // const shape = "Marquise";
     // // Make sure Weight tag is down to 2.6
     // const weight = "2.63";
-    // // Range Check - between D to Z, only one big letter
     // const color = "G";
-    // // Type check - Approved cut
     // const cut = "Excellent";
-    // // Type check - Approved Clarity
     // const clarity = "VS1";
 
-    // const title = generateDiamondTitle({
-    //   weight,
-    //   color,
-    //   shape,
-    //   cut,
-    //   clarity,
-    // });
+    const title = generateDiamondTitle({
+      weight,
+      color,
+      shape,
+      cut,
+      clarity,
+    });
 
     // const imageUrl = "";
     // const alt = "";
     // const price = "6867.00";
-    // // build util function title builder
-    const title = `${weight}ct ${color} ${shape}, ${cut}, ${clarity}`;
 
-    // // Type check - Media, understnad which other media content types there are
     // const media = [
     //   {
     //     alt: title,
@@ -62,6 +60,25 @@ const createProduct = async (request: Request) => {
     //       "https://ilabdiamonds.com/wp-content/uploads/2021/10/%D7%99%D7%94%D7%9C%D7%95%D7%9D-%D7%9E%D7%A2%D7%91%D7%93%D7%94-%D7%9E%D7%A8%D7%A7%D7%99%D7%96%D7%94.png",
     //   },
     // ];
+
+    try {
+      const r = StoneSchema.parse(stone);
+      // mySchema.parse("tuna")
+      console.log("sagy71", { r });
+      // console.log("sagy71", { stoneData });
+    } catch (error: any) {
+      console.log("sagy72", error.message);
+    }
+
+    console.log(
+      "sagy21",
+      TagKey.Shape,
+      shape,
+      TagKey.Weight,
+      weight,
+      TagKey.Color,
+      color,
+    );
 
     const tags = [
       Tag.generate(TagKey.Shape, shape),
