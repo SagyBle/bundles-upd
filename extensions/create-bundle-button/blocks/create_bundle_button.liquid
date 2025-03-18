@@ -1,24 +1,64 @@
+{% comment %} ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ {% endcomment %}
 <link rel="stylesheet" href="{{ 'create-bundle-styles.css' | asset_url }}">
+{% comment %} // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // {% endcomment %}
 
-<p>Hello world!!!</p>
 
 <button id="create-bundle-button" onclick="createBundle()" class="btn-primary">
   Create Bundle
 </button>
+
+{% comment %} ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ {% endcomment %}
+
 <button id="checkout-button3" onclick="testProxy()" class="btn-primary">
   Test!
 </button>
-
-<!-- Toggle Button for Additional Product -->
 <button id="toggle-additional-product" class="btn-secondary">
   Include Additional Product
 </button>
-
-<!-- Toggle Button for Mutual Wedding Band -->
 <button id="toggle-wedding-band" class="btn-secondary">
   Include Mutual Wedding Band
 </button>
 
+<button id="print-input-button" class="btn-secondary">
+  Print Bundle Input
+</button>
+<!-- Size Buttons -->
+<button id="size-1-button" class="btn-secondary">Size 1</button>
+<button id="size-2-button" class="btn-secondary">Size 2</button>
+
+{% comment %} // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // {% endcomment %}
+
+
+<script>
+  // Ensure the input object always exists
+  window.input = {
+    ring: { 
+      productId: window.currentProductId, 
+      options: [{ optionName: "size", optionValue: "1" }] 
+    },
+    stones: [],
+    extrasInBundle: [],
+    extrasOutOfBundle: []
+  };
+
+  // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓  //
+  function updateSize(sizeValue) {
+    window.input.ring.options = [{ optionName: "size", optionValue: sizeValue }];
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateSize("1");
+    document.getElementById("size-1-button").addEventListener("click", function () {
+      updateSize("1");
+    });
+    document.getElementById("size-2-button").addEventListener("click", function () {
+      updateSize("2");
+    });
+  });
+  // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  //
+</script>
+
+{% comment %} ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ {% endcomment %}
 {% if product.metafields.custom.relatedstones %}
   {% assign rstones = product.metafields.custom.relatedstones.value %}
 
@@ -38,20 +78,34 @@
 {% else %}
   <p>No related stones found.</p>
 {% endif %}
+{% comment %} ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // {% endcomment %}
+
+
 
 <script>
+  // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
   window.currentProductId = "{{ product.id }}";
   let chosenStone = null;
   
-  // Define product IDs (converted to Shopify GID format)
-  const additionalProductId = "10100360446239"; // Extra product
+  const additionalProductId = "10100360446239"; // Extra Bundle product
   const weddingBandVariantId = "50741704261919"; // Mutual Wedding Band
+  // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // 
 
-  // Initial state: Not included by default
+
   window.includeAdditionalProduct = false;
   window.includeWeddingBand = false;
 
+  // Mock input object
+  window.input = {
+    ring: { productId: window.currentProductId, options: [{ optionName: "size", optionValue: "" }] },
+    stones: [],
+    extrasInBundle: [],
+    extrasOutOfBundle: []
+  };
+
   document.addEventListener("DOMContentLoaded", function () {
+    console.log("📦 Default Mock Input Object:", window.input);
+
     // Select all stone cards
     const stoneCards = document.querySelectorAll(".stone-card");
 
@@ -62,33 +116,78 @@
           title: this.querySelector("h3").innerText
         };
 
+      // Update window.input.stones to include only the selected stone
+        window.input.stones = [{ productId: chosenStone.productId }];
+
         console.log("✅ Stone selected:", chosenStone);
       });
     });
 
     // Handle additional product toggle button
     const toggleAdditionalButton = document.getElementById("toggle-additional-product");
-    toggleAdditionalButton.addEventListener("click", function () {
-      window.includeAdditionalProduct = !window.includeAdditionalProduct;
-      toggleAdditionalButton.innerText = window.includeAdditionalProduct 
-        ? "✅ Additional Product Included" 
-        : "Include Additional Product";
-      console.log("🔄 Additional Product:", window.includeAdditionalProduct);
-    });
+
+  toggleAdditionalButton.addEventListener("click", function () {
+    const additionalProductId = "10100360446239"; // Extra product ID
+
+    // Check if the product already exists in extrasInBundle
+    const existingIndex = window.input.extrasInBundle.findIndex(item => item.productId === additionalProductId);
+
+    if (existingIndex !== -1) {
+      // If it exists, remove it
+      window.input.extrasInBundle.splice(existingIndex, 1);
+      toggleAdditionalButton.innerText = "Include Additional Product";
+      console.log("❌ Removed Additional Product:", window.input.extrasInBundle);
+    } else {
+      // If it doesn't exist, add it
+      window.input.extrasInBundle.push({ productId: additionalProductId });
+      toggleAdditionalButton.innerText = "✅ Additional Product Included";
+      console.log("✅ Added Additional Product:", window.input.extrasInBundle);
+    }
+  });
 
     // Handle wedding band toggle button
     const toggleWeddingBandButton = document.getElementById("toggle-wedding-band");
     toggleWeddingBandButton.addEventListener("click", function () {
-      window.includeWeddingBand = !window.includeWeddingBand;
-      toggleWeddingBandButton.innerText = window.includeWeddingBand 
-        ? "✅ Wedding Band Included" 
-        : "Include Mutual Wedding Band";
-      console.log("🔄 Wedding Band:", window.includeWeddingBand);
+    const weddingBandVariantId = "50741704261919"; // Mutual Wedding Band Variant ID
+
+    // Check if the variant ID already exists in extrasOutOfBundle
+    const existingIndex = window.input.extrasOutOfBundle.findIndex(item => item.variantId === weddingBandVariantId);
+
+    if (existingIndex !== -1) {
+      // If it exists, remove it
+      window.input.extrasOutOfBundle.splice(existingIndex, 1);
+      toggleWeddingBandButton.innerText = "Include Mutual Wedding Band";
+      console.log("❌ Removed Wedding Band:", window.input.extrasOutOfBundle);
+    } else {
+      // If it doesn't exist, add it
+      window.input.extrasOutOfBundle.push({ variantId: weddingBandVariantId }); // Corrected to add as an object
+      toggleWeddingBandButton.innerText = "✅ Wedding Band Included";
+      console.log("✅ Added Wedding Band:", window.input.extrasOutOfBundle);
+    }
+  });
+
+    // Print Mock Input Button
+    const printButton = document.getElementById("print-input-button");
+    printButton.addEventListener("click", function () {
+      console.log("📦 Input Object:", window.input);
+      alert(JSON.stringify(window.input, null, 2));
     });
   });
 
+  async function addAllExtrasOutOfBundle() {
+    if (window.input && window.input.extrasOutOfBundle &&  window.input.extrasOutOfBundle.length > 1) {
+      console.log("⚠️ No extrasOutOfBundle items to add.");
+      return;
+    }
+
+    for (const extra of window.input.extrasOutOfBundle) {
+      if (extra.variantId) {
+        await addWeddingBandToCart(extra.variantId);
+      }
+    }
+  }
+
   const createBundle = async (secondProductId) => {
-    const startTime = Date.now();  
     console.log("🚀 Sending create bundle request...");
 
     if (chosenStone && chosenStone.productId) {
@@ -122,30 +221,30 @@
         },
         body: JSON.stringify({
           productsIds,
-          bundleTitle
+          bundleTitle,
+          input
         }),
       });
+
+
 
       if (!responseBundle.ok) {
         throw new Error(`Bundle request failed: ${responseBundle.status}`);
       }
-
       const dataBundle = await responseBundle.json();
-      console.log("✅ sagy200 Bundle response:", dataBundle);
 
-      const variantId = dataBundle?.data?.variantId;
+      // const variantId = dataBundle?.data?.variantId;
       const variantIdNumeric = dataBundle?.data?.variantIdNumeric;
 
       if (!variantIdNumeric) {
         throw new Error("❌ Error: Variant ID is missing or invalid.");
       }
 
-      console.log("✅ Extracted variantId:", variantId);
-      console.log("✅ Extracted variantIdNumeric:", variantIdNumeric);
-
       setTimeout(() => {
-        addBundleToCart(variantIdNumeric, startTime);
+        addBundleToCart(variantIdNumeric);
       }, 1000);
+
+      await addAllExtrasOutOfBundle();
 
     } catch (error) {
       console.error("❌ Fetch Error:", error);
@@ -153,7 +252,7 @@
     }
   };
 
-  const addBundleToCart = async (variantId, startTime) => {
+  const addBundleToCart = async (variantId) => {
     console.log("🚀 Adding bundle to cart...", variantId);
 
     try {
@@ -176,19 +275,20 @@
       console.log("✅ Product added to cart:", data);
       // alert("✅ Bundle added to cart!");
 
-      // Add Wedding Band separately if toggled on
-      if (window.includeWeddingBand) {
-        addWeddingBandToCart();
-      }
+      // if (window.includeWeddingBand) {
+      //   addWeddingBandToCart();
+      // }
+
     } catch (error) {
       console.error("❌ Error adding product to cart:", error);
       alert("❌ Error adding bundle to cart. Please try again.");
     }
   };
 
-  const addWeddingBandToCart = async () => {
-    console.log("🚀 Adding Wedding Band separately to cart...", weddingBandVariantId);
-
+  const addWeddingBandToCart = async (variantId) => {
+    // console.log("🚀 Adding Wedding Band separately to cart...", weddingBandVariantId);
+  console.log("sagy52",variantId);
+  
     try {
       const response = await fetch("/cart/add.js", {
         method: "POST",
@@ -196,7 +296,7 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          id: weddingBandVariantId,
+          id: variantId,
           quantity: 1,
         }),
       });
@@ -207,7 +307,6 @@
 
       const data = await response.json();
       console.log("✅ Wedding Band added to cart:", data);
-      alert("✅ Wedding Band added to cart!");
     } catch (error) {
       console.error("❌ Error adding Wedding Band to cart:", error);
       alert("❌ Error adding Wedding Band. Please try again.");
