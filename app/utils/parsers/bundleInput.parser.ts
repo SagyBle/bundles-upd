@@ -37,3 +37,11 @@ export const filterRingOptions = (ring: any, ringOptions: any) => {
     return ringOption;
   });
 };
+
+export function extractProductIdsFromArray<T extends { productId?: string }>(
+  array: T[],
+): string[] {
+  return array
+    .filter((item) => item.productId) // Ensure productId exists
+    .map((item) => item.productId as string);
+}

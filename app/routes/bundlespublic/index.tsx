@@ -9,7 +9,6 @@ import { authenticate } from "app/shopify.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   if (request.method === "POST") {
-    // return bundleController.createBundle(request);
     return bundleController.createBundleNew(request);
   }
   return { success: false };
