@@ -8,10 +8,12 @@ export const formatBundleInput = (inputObject: any) => {
     ShopifyResourceType.Product,
   );
   formattedInput.stones = formattedInput.stones.map((stone: any) => ({
+    ...stone,
     productId: formatGid(stone.productId, ShopifyResourceType.Product),
   }));
   formattedInput.extrasInBundle = formattedInput.extrasInBundle.map(
     (extra: any) => ({
+      ...extra,
       productId: formatGid(extra.productId, ShopifyResourceType.Product),
     }),
   );

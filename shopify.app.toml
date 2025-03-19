@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f1ba0e069721f93052cfa0eb3b26fc38"
-application_url = "https://nsw-statutes-spine-oriented.trycloudflare.com"
+application_url = "https://completion-ronald-trades-journalists.trycloudflare.com"
 embedded = true
 name = "budnles-upd"
 handle = "budnles-upd"
@@ -27,9 +27,9 @@ scopes = "write_products, read_inventory, write_inventory"
 
 [auth]
 redirect_urls = [
-  "https://nsw-statutes-spine-oriented.trycloudflare.com/auth/callback",
-  "https://nsw-statutes-spine-oriented.trycloudflare.com/auth/shopify/callback",
-  "https://nsw-statutes-spine-oriented.trycloudflare.com/api/auth/callback"
+  "https://completion-ronald-trades-journalists.trycloudflare.com/auth/callback",
+  "https://completion-ronald-trades-journalists.trycloudflare.com/auth/shopify/callback",
+  "https://completion-ronald-trades-journalists.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

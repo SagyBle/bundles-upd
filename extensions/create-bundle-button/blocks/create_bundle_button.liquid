@@ -31,15 +31,16 @@
 
 <script>
   // Ensure the input object always exists
-  window.input = {
-    ring: { 
-      productId: window.currentProductId, 
-      options: [{ optionName: "size", optionValue: "1" }] 
-    },
-    stones: [],
-    extrasInBundle: [],
-    extrasOutOfBundle: []
-  };
+  // window.input = {
+  //   ring: { 
+  //     productId: window.currentProductId, 
+  //     options: [{ optionName: "size", optionValue: "1" }],
+  //     imgUrl: ringImgUrl,
+  //   },
+  //   stones: [],
+  //   extrasInBundle: [],
+  //   extrasOutOfBundle: []
+  // };
 
   // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓  //
   function updateSize(sizeValue) {
@@ -88,7 +89,8 @@
   let chosenStone = null;
   
   const additionalProductId = "10100360446239"; // Extra Bundle product
-  const weddingBandVariantId = "50741704261919"; // Mutual Wedding Band
+  const ringImgUrl = "https://www.citypng.com/public/uploads/preview/png-marriage-engagement-wedding-gold-ring-704081695119088ixwjgq6eng.png"
+  const stoneImgUrl = "https://pngimg.com/uploads/diamond/diamond_PNG6689.png"
   // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // 
 
 
@@ -97,7 +99,7 @@
 
   // Mock input object
   window.input = {
-    ring: { productId: window.currentProductId, options: [{ optionName: "size", optionValue: "" }] },
+    ring: { productId: window.currentProductId, options: [{ optionName: "size", optionValue: "" }], imgUrl: ringImgUrl },
     stones: [],
     extrasInBundle: [],
     extrasOutOfBundle: []
@@ -117,7 +119,7 @@
         };
 
       // Update window.input.stones to include only the selected stone
-        window.input.stones = [{ productId: chosenStone.productId }];
+        window.input.stones = [{ productId: chosenStone.productId, imgUrl: stoneImgUrl }];
 
         console.log("✅ Stone selected:", chosenStone);
       });
@@ -211,6 +213,11 @@
     }
 
     console.log("Creating bundle with:", productsIds);
+    console.log("sagy5", input);
+    console.log("sagy6", window.input);
+    
+    
+    
 
     try {
       const responseBundle = await fetch("https://sagy-test-academy.myshopify.com/apps/create-bundle-button/bundlespublic", {

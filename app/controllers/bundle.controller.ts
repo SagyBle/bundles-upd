@@ -5,8 +5,6 @@ import { extractIdFromGid, formatGid } from "app/utils/gid.util";
 import { json } from "@remix-run/node";
 import { checkRequestType } from "app/utils/auth.util";
 import { ApiResponse } from "app/utils/apiResponse";
-import { AdminShopifyService } from "app/services/api/adminShopify.api.service";
-import { SessionShopifyService } from "app/services/api/sessionShopify.api.service";
 import ProductService from "app/services/product.service";
 import {
   extractProductIdsFromArray,
@@ -133,14 +131,25 @@ const createBundle = async (request: Request) => {
   }
 };
 
+interface BundleInput {
+  ring: {
+    productId: string;
+    options: { optionName: string; optionValue: string }[];
+    imgUrl: string;
+  };
+  stones: { productId: string; imgUrl: string }[];
+  extrasInBundle: { productId: string }[];
+  extrasOutOfBundle: { variantId: string }[];
+}
+
 const createBundleNew = async (request: Request) => {
   const { isAdmin, admin, isSession, session } =
     await checkRequestType(request);
 
   let title: string = "Default bundle";
-  let input: any;
+  let input: BundleInput | null = null;
   if (isAdmin) {
-    //
+    // TODO: complete this with new input object
   } else if (isSession) {
     const data = await request.json();
 
@@ -215,6 +224,32 @@ const createBundleNew = async (request: Request) => {
         request,
         bundleInput,
       )) || "";
+
+    const media = [
+      {
+        alt: `${title} ring`,
+        mediaContentType: "IMAGE",
+        originalSource: input.ring.imgUrl, // Ensure ring has imgUrl
+      },
+      ...input.stones
+        .filter((stone) => stone.imgUrl) // ✅ Ensure only stones with an image are included
+        .map((stone, index) => ({
+          alt: `${title} stone ${index + 1}`,
+          mediaContentType: "IMAGE",
+          originalSource: stone.imgUrl,
+        })),
+    ];
+
+    console.log("sagy2", { media });
+
+    const uploadedMedia = await ProductService.newCreateProductMedia(
+      { session },
+      request,
+      {
+        productId: bundleCreated,
+        media,
+      },
+    );
 
     const variantId = await ProductService.getProductDefaultVariantId(
       { admin, session },
