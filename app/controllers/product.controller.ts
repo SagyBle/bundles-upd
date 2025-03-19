@@ -14,11 +14,36 @@ const createProduct = async (request: Request) => {
     const { admin, nodejsAuth } = await checkRequestType(request);
 
     const body = await request.json();
+    console.log("sagy124", { body });
+
     // const stone: Stone = body;
 
     // ✅ Extract values safely
-    const { shape, weight, color, cut, clarity, price, media } = body;
-    const stone = { shape, weight, color, cut, clarity, price, media };
+    const [
+      {
+        shape,
+        weight,
+        color,
+        cut,
+        clarity,
+        cost,
+        price,
+        compareAtPrice,
+        media,
+      },
+    ] = body;
+
+    const stone = {
+      shape,
+      weight,
+      color,
+      cut,
+      clarity,
+      cost,
+      price,
+      compareAtPrice,
+      media,
+    };
 
     // console.log("Parsed Data: sagy14", {
     //   shape,
@@ -150,7 +175,16 @@ const createProduct = async (request: Request) => {
       request,
       {
         productId: product.id,
-        variants: [{ id: variantId, price }],
+        variants: [
+          {
+            id: variantId,
+            price,
+            compareAtPrice,
+            inventoryItem: {
+              cost,
+            },
+          },
+        ],
       },
     );
 
