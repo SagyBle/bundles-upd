@@ -1,65 +1,195 @@
+{% comment %} ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ {% endcomment %}
 <link rel="stylesheet" href="{{ 'create-bundle-styles.css' | asset_url }}">
+{% comment %} // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // {% endcomment %}
 
-
-<p>hello world!</p>
 
 <button id="create-bundle-button" onclick="createBundle()" class="btn-primary">
   Create Bundle
 </button>
+
+{% comment %} ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ {% endcomment %}
+
 <button id="checkout-button3" onclick="testProxy()" class="btn-primary">
   Test!
 </button>
+<button id="toggle-additional-product" class="btn-secondary">
+  Include Additional Product
+</button>
+<button id="toggle-wedding-band" class="btn-secondary">
+  Include Mutual Wedding Band
+</button>
 
+<button id="print-input-button" class="btn-secondary">
+  Print Bundle Input
+</button>
+<!-- Size Buttons -->
+<button id="size-1-button" class="btn-secondary">Size 1</button>
+<button id="size-2-button" class="btn-secondary">Size 2</button>
+
+{% comment %} // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // {% endcomment %}
+
+
+<script>
+  // Ensure the input object always exists
+  // window.input = {
+  //   ring: { 
+  //     productId: window.currentProductId, 
+  //     options: [{ optionName: "size", optionValue: "1" }],
+  //     imgUrl: ringImgUrl,
+  //   },
+  //   stones: [],
+  //   extrasInBundle: [],
+  //   extrasOutOfBundle: []
+  // };
+
+  // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓  //
+  function updateSize(sizeValue) {
+    window.input.ring.options = [{ optionName: "size", optionValue: sizeValue }];
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateSize("1");
+    document.getElementById("size-1-button").addEventListener("click", function () {
+      updateSize("1");
+    });
+    document.getElementById("size-2-button").addEventListener("click", function () {
+      updateSize("2");
+    });
+  });
+  // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  //
+</script>
+
+{% comment %} ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ {% endcomment %}
 {% if product.metafields.custom.relatedstones %}
   {% assign rstones = product.metafields.custom.relatedstones.value %}
 
   <div class="stone-container">
     {% for p in rstones %}
       <div class="stone-card" data-id="{{ p.id }}" data-carat="{{ p.carat }}" data-color="{{ p.color }}" data-cut="{{ p.cut }}" data-clarity="{{ p.clarity }}">
-        <!-- Product Image -->
         <img src="{{ p.featured_image | image_url: width: 200 }}" 
               alt="{{ p.title }}" 
               height="auto"
-              width="auto"
-              >
+              width="auto">
 
-        <h3>
-          {{ p.title }}
-        </h3>
-
-        <!-- Product Price -->
-        <p>
-          {{ p.price | money }}
-        </p>
+        <h3>{{ p.title }}</h3>
+        <p>{{ p.price | money }}</p>
       </div>
     {% endfor %}
   </div>
 {% else %}
   <p>No related stones found.</p>
 {% endif %}
+{% comment %} ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // {% endcomment %}
+
+
 
 <script>
+  // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ TESTING ONLY CODE ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
   window.currentProductId = "{{ product.id }}";
   let chosenStone = null;
+  
+  const additionalProductId = "10100360446239"; // Extra Bundle product
+  const ringImgUrl = "https://www.citypng.com/public/uploads/preview/png-marriage-engagement-wedding-gold-ring-704081695119088ixwjgq6eng.png"
+  const stoneImgUrl = "https://pngimg.com/uploads/diamond/diamond_PNG6689.png"
+  // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ TESTING ONLY CODE ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑  // 
+
+
+  window.includeAdditionalProduct = false;
+  window.includeWeddingBand = false;
+
+  // Mock input object
+  window.input = {
+    ring: { productId: window.currentProductId, options: [{ optionName: "size", optionValue: "" }], imgUrl: ringImgUrl },
+    stones: [],
+    extrasInBundle: [],
+    extrasOutOfBundle: []
+  };
 
   document.addEventListener("DOMContentLoaded", function () {
-  // Select all stone cards
-  const stoneCards = document.querySelectorAll(".stone-card");
+    console.log("📦 Default Mock Input Object:", window.input);
 
-  stoneCards.forEach((card) => {
-    card.addEventListener("click", function () {
-      chosenStone = {
-        productId: this.getAttribute("data-id"),
-        title: this.querySelector("h3").innerText
-      };
+    // Select all stone cards
+    const stoneCards = document.querySelectorAll(".stone-card");
 
-      console.log("✅ Stone selected:", chosenStone);
+    stoneCards.forEach((card) => {
+      card.addEventListener("click", function () {
+        chosenStone = {
+          productId: this.getAttribute("data-id"),
+          title: this.querySelector("h3").innerText
+        };
+
+      // Update window.input.stones to include only the selected stone
+        window.input.stones = [{ productId: chosenStone.productId, imgUrl: stoneImgUrl }];
+
+        console.log("✅ Stone selected:", chosenStone);
+      });
+    });
+
+    // Handle additional product toggle button
+    const toggleAdditionalButton = document.getElementById("toggle-additional-product");
+
+  toggleAdditionalButton.addEventListener("click", function () {
+    const additionalProductId = "10100360446239"; // Extra product ID
+
+    // Check if the product already exists in extrasInBundle
+    const existingIndex = window.input.extrasInBundle.findIndex(item => item.productId === additionalProductId);
+
+    if (existingIndex !== -1) {
+      // If it exists, remove it
+      window.input.extrasInBundle.splice(existingIndex, 1);
+      toggleAdditionalButton.innerText = "Include Additional Product";
+      console.log("❌ Removed Additional Product:", window.input.extrasInBundle);
+    } else {
+      // If it doesn't exist, add it
+      window.input.extrasInBundle.push({ productId: additionalProductId });
+      toggleAdditionalButton.innerText = "✅ Additional Product Included";
+      console.log("✅ Added Additional Product:", window.input.extrasInBundle);
+    }
+  });
+
+    // Handle wedding band toggle button
+    const toggleWeddingBandButton = document.getElementById("toggle-wedding-band");
+    toggleWeddingBandButton.addEventListener("click", function () {
+    const weddingBandVariantId = "50741704261919"; // Mutual Wedding Band Variant ID
+
+    // Check if the variant ID already exists in extrasOutOfBundle
+    const existingIndex = window.input.extrasOutOfBundle.findIndex(item => item.variantId === weddingBandVariantId);
+
+    if (existingIndex !== -1) {
+      // If it exists, remove it
+      window.input.extrasOutOfBundle.splice(existingIndex, 1);
+      toggleWeddingBandButton.innerText = "Include Mutual Wedding Band";
+      console.log("❌ Removed Wedding Band:", window.input.extrasOutOfBundle);
+    } else {
+      // If it doesn't exist, add it
+      window.input.extrasOutOfBundle.push({ variantId: weddingBandVariantId }); // Corrected to add as an object
+      toggleWeddingBandButton.innerText = "✅ Wedding Band Included";
+      console.log("✅ Added Wedding Band:", window.input.extrasOutOfBundle);
+    }
+  });
+
+    // Print Mock Input Button
+    const printButton = document.getElementById("print-input-button");
+    printButton.addEventListener("click", function () {
+      console.log("📦 Input Object:", window.input);
+      alert(JSON.stringify(window.input, null, 2));
     });
   });
-});
+
+  async function addAllExtrasOutOfBundle() {
+    if (window.input && window.input.extrasOutOfBundle &&  window.input.extrasOutOfBundle.length > 1) {
+      console.log("⚠️ No extrasOutOfBundle items to add.");
+      return;
+    }
+
+    for (const extra of window.input.extrasOutOfBundle) {
+      if (extra.variantId) {
+        await addWeddingBandToCart(extra.variantId);
+      }
+    }
+  }
 
   const createBundle = async (secondProductId) => {
-    const startTime = Date.now();  
     console.log("🚀 Sending create bundle request...");
 
     if (chosenStone && chosenStone.productId) {
@@ -70,11 +200,24 @@
       return;
     }
 
-    console.log("Creating bundle with:", { firstProductId: window.currentProductId, secondProductId });
-
     const productName = `💍 {{ product.title | escape }}`;
     const stoneTitle = `💎 ${chosenStone.title}`;
     const bundleTitle = `${productName} ${stoneTitle}`;
+    
+    // Construct productsIds array with current product and selected stone
+    let productsIds = [window.currentProductId, secondProductId];
+
+    // Add additional product if toggled on
+    if (window.includeAdditionalProduct) {
+      productsIds.push(additionalProductId);
+    }
+
+    console.log("Creating bundle with:", productsIds);
+    console.log("sagy5", input);
+    console.log("sagy6", window.input);
+    
+    
+    
 
     try {
       const responseBundle = await fetch("https://sagy-test-academy.myshopify.com/apps/create-bundle-button/bundlespublic", {
@@ -84,33 +227,31 @@
           "Access-Control-Allow-Origin": "*",
         },
         body: JSON.stringify({
-          firstProductId: window.currentProductId,
-          secondProductId,
-          bundleTitle
+          productsIds,
+          bundleTitle,
+          input
         }),
       });
+
+
 
       if (!responseBundle.ok) {
         throw new Error(`Bundle request failed: ${responseBundle.status}`);
       }
-
       const dataBundle = await responseBundle.json();
-      console.log("✅ sagy200 Bundle response:", dataBundle);
 
-      // Extract variantIdNumeric safely
-      const variantId = dataBundle?.data?.variantId;
+      // const variantId = dataBundle?.data?.variantId;
       const variantIdNumeric = dataBundle?.data?.variantIdNumeric;
 
       if (!variantIdNumeric) {
         throw new Error("❌ Error: Variant ID is missing or invalid.");
       }
 
-      console.log("✅ Extracted variantId:", variantId);
-      console.log("✅ Extracted variantIdNumeric:", variantIdNumeric);
-
       setTimeout(() => {
-        addBundleToCart(variantIdNumeric, startTime);
-      }, 1200);
+        addBundleToCart(variantIdNumeric);
+      }, 1000);
+
+      await addAllExtrasOutOfBundle();
 
     } catch (error) {
       console.error("❌ Fetch Error:", error);
@@ -118,86 +259,64 @@
     }
   };
 
-  // Function to add bundle to cart
-  const addBundleToCart = async (variantId, startTime,maxDuration = 3000, retryDelay = 200) => {
-    console.log("🚀 Waiting before adding bundle to cart...", variantId);
-    
-    // Wait initially before starting retries
-
-    console.log("🚀 Adding bundle to cart now...", variantId);
-    const startTimeCart = Date.now();
-    const endTimeCart = startTimeCart + maxDuration;
-
-    while (Date.now() < endTimeCart) {
-      try {
-        console.log("🚀 Trying to add bundle to cart");
-
-        const response = await fetch("/cart/add.js", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id: variantId,
-            quantity: 1,
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to add product to cart: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data && Object.keys(data).length > 0) {
-          const elapsedTime = (Date.now() - startTime) / 1000;
-          console.log("✅ Product added to cart:", data, "Total time:", elapsedTime);
-          alert("✅ Bundle added to cart!");
-          return;
-        } else {
-          console.warn("⚠️ Empty response received. Retrying...");
-        }
-      } catch (error) {
-        console.error("❌ Error adding product to cart:", error);
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, retryDelay));
-    }
-
-    console.error("⏳ Max retries reached. Bundle not added.");
-    alert("❌ Error adding bundle to cart. Please try again.");
-  };
-
-  const testProxy = async () => {
-    console.log("🚀 Sending request...", window.currentProductId);
-
-    const requestBody = {
-      message: "Hello from Shopify Extension!",
-      user: {
-        id: "12345",
-        name: "Sagy Blecher",
-      }
-    };
+  const addBundleToCart = async (variantId) => {
+    console.log("🚀 Adding bundle to cart...", variantId);
 
     try {
-      const response = await fetch("https://sagy-test-academy.myshopify.com/apps/create-bundle-button/test", {
+      const response = await fetch("/cart/add.js", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          id: variantId,
+          quantity: 1,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
+        throw new Error(`Failed to add product to cart: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("✅ Response:", data);
-      alert(`✅ Success: ${data.message}`);
+      console.log("✅ Product added to cart:", data);
+      // alert("✅ Bundle added to cart!");
+
+      // if (window.includeWeddingBand) {
+      //   addWeddingBandToCart();
+      // }
+
     } catch (error) {
-      console.error("❌ Fetch Error:", error);
-      alert(`❌ Error: ${error.message}`);
+      console.error("❌ Error adding product to cart:", error);
+      alert("❌ Error adding bundle to cart. Please try again.");
+    }
+  };
+
+  const addWeddingBandToCart = async (variantId) => {
+    // console.log("🚀 Adding Wedding Band separately to cart...", weddingBandVariantId);
+  console.log("sagy52",variantId);
+  
+    try {
+      const response = await fetch("/cart/add.js", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: variantId,
+          quantity: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add Wedding Band to cart: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("✅ Wedding Band added to cart:", data);
+    } catch (error) {
+      console.error("❌ Error adding Wedding Band to cart:", error);
+      alert("❌ Error adding Wedding Band. Please try again.");
     }
   };
 </script>
@@ -207,7 +326,7 @@
   "name": "Create Bundle Button",
   "target": "section",
   "settings": [
-    { "type": "product", "id": "product", "label": "product", "autofill": true },
+    { "type": "product", "id": "product", "label": "Product", "autofill": true },
     { "type": "color", "id": "colour", "label": "Star Colour", "default": "#ff0000" }
   ]
 }

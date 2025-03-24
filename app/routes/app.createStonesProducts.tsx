@@ -17,13 +17,14 @@ import { useFetcher } from "@remix-run/react";
 export default function CreateStonesProducts() {
   const fetcher = useFetcher<any>();
 
-  const [shape, setShape] = useState("");
-  const [carat, setCarat] = useState("");
-  const [color, setColor] = useState("");
+  // ✅ Default values
+  const [shape, setShape] = useState("OV");
+  const [carat, setCarat] = useState("2.2");
+  const [color, setColor] = useState("E");
   const [limit, setLimit] = useState("5"); // Default limit (between 0-10)
   const [stones, setStones] = useState<any[]>([]);
   const [selectedStones, setSelectedStones] = useState<{
-    [key: string]: boolean;
+    [stone_id: string]: boolean;
   }>({});
 
   const handleLimitChange = (value: string) => {
@@ -33,7 +34,7 @@ export default function CreateStonesProducts() {
     }
   };
 
-  // Fetch Stones from API
+  // ✅ Fetch Stones from API
   const fetchStones = async () => {
     console.log("Fetching stones with:", { shape, carat, color, limit });
 
@@ -46,8 +47,16 @@ export default function CreateStonesProducts() {
 
     if (response && Array.isArray(response)) {
       setStones(response);
-      setSelectedStones(
-        response.reduce((acc, stone) => ({ ...acc, [stone._id]: false }), {}),
+
+      // ✅ Maintain existing selections, default to false for new stones
+      setSelectedStones((prev) =>
+        response.reduce(
+          (acc, stone) => ({
+            ...acc,
+            [stone.stone_id]: prev[stone.stone_id] || false,
+          }),
+          {},
+        ),
       );
     } else {
       console.error("❌ Error: Unexpected response format", response);
@@ -55,16 +64,16 @@ export default function CreateStonesProducts() {
     }
   };
 
-  // Handle Checkbox Toggle
-  const toggleStoneSelection = (id: string) => {
+  // ✅ Handle Checkbox Toggle (INDIVIDUAL SELECTION WORKS)
+  const toggleStoneSelection = (stone_id: string) => {
     setSelectedStones((prev) => ({
       ...prev,
-      [id]: !prev[id],
+      [stone_id]: !prev[stone_id],
     }));
   };
 
   const uploadSelectedStones = () => {
-    const selected = stones.filter((stone) => selectedStones[stone._id]);
+    const selected = stones.filter((stone) => selectedStones[stone.stone_id]);
 
     if (selected.length === 0) {
       console.warn("⚠️ No stones selected for upload.");
@@ -74,7 +83,7 @@ export default function CreateStonesProducts() {
     console.log("📦 Uploading Stones:", selected);
 
     // ✅ Convert selected stones to raw JSON
-    const jsonBody = JSON.stringify(selected[0]);
+    const jsonBody = JSON.stringify(selected);
 
     // ✅ Submit using fetcher.submit with JSON body
     fetcher.submit(jsonBody, {
@@ -82,6 +91,11 @@ export default function CreateStonesProducts() {
       action: "/productsadmin",
       encType: "application/json", // ✅ Ensure raw JSON
     });
+  };
+
+  // ✅ Test function that logs "Hello, world!"
+  const testFunction = () => {
+    console.log("Hello, world!");
   };
 
   return (
@@ -131,19 +145,20 @@ export default function CreateStonesProducts() {
             <Card>
               <Box padding="400">
                 {stones.map((stone) => (
-                  <>
-                    <Checkbox
-                      key={stone._id}
-                      label={`🆔 ${stone.stone_id} | 💎 ${stone.shape} - ${stone.carat}ct - 🎨 ${stone.color}`}
-                      checked={selectedStones[stone._id]}
-                      onChange={() => toggleStoneSelection(stone._id)}
-                    />
-                  </>
+                  <Checkbox
+                    key={stone.stone_id}
+                    label={`🆔 ${stone.stone_id} | 💎 ${stone.shape} - ${stone.carat}ct - 🎨 ${stone.color}`}
+                    checked={selectedStones[stone.stone_id] || false}
+                    onChange={() => toggleStoneSelection(stone.stone_id)}
+                  />
                 ))}
               </Box>
             </Card>
             <Box padding="400">
               <Button onClick={uploadSelectedStones}>UPLOAD</Button>
+            </Box>
+            <Box padding="400">
+              <Button onClick={testFunction}>TEST</Button>
             </Box>
           </Layout.Section>
         )}
