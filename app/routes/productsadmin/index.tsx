@@ -185,6 +185,19 @@ export default function ProductsPage() {
                     </Text>
                   </Box>
                 )}
+                {fetcher.data?.data && (
+                  <Box
+                    padding="400"
+                    background="bg-surface-active"
+                    borderWidth="025"
+                    borderRadius="200"
+                    borderColor="border"
+                  >
+                    <Text as="p">
+                      <b>Test Response:</b> {fetcher.data?.data.data.data}
+                    </Text>
+                  </Box>
+                )}
               </BlockStack>
             </Card>
           </Layout.Section>
