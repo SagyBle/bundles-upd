@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f1ba0e069721f93052cfa0eb3b26fc38"
-application_url = "https://saudi-metallica-illustrated-jeremy.trycloudflare.com"
+application_url = "https://blogs-tons-mc-affiliation.trycloudflare.com"
 embedded = true
 name = "budnles-upd"
 handle = "budnles-upd"
@@ -27,9 +27,9 @@ scopes = "write_products, read_inventory, write_inventory"
 
 [auth]
 redirect_urls = [
-  "https://saudi-metallica-illustrated-jeremy.trycloudflare.com/auth/callback",
-  "https://saudi-metallica-illustrated-jeremy.trycloudflare.com/auth/shopify/callback",
-  "https://saudi-metallica-illustrated-jeremy.trycloudflare.com/api/auth/callback"
+  "https://blogs-tons-mc-affiliation.trycloudflare.com/auth/callback",
+  "https://blogs-tons-mc-affiliation.trycloudflare.com/auth/shopify/callback",
+  "https://blogs-tons-mc-affiliation.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

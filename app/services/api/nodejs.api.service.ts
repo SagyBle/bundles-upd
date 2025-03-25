@@ -10,6 +10,12 @@ class NodeJsApiService extends ApiService {
   async fetchStones<T>(params: Record<string, any> = {}): Promise<T> {
     return this.post<T>("/api/stonesApi/uni/test", params);
   }
+  async createBBStone<T>(data: Record<string, any>): Promise<T> {
+    console.log("sagy14", data.stoneType);
+    console.log("sagy15", data);
+
+    return this.post<T>("/api/stonesApi/bbInventory/createStone", data);
+  }
 }
 
 export default new NodeJsApiService();
