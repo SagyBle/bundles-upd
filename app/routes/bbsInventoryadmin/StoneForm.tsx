@@ -65,7 +65,7 @@ const labOptions = [
   { label: "HRD", value: "HRD" },
 ];
 
-export default function StoneForm() {
+export default function BBStoneForm() {
   const fetcher = useFetcher();
   const shopify = useAppBridge();
 

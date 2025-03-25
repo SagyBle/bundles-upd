@@ -6,6 +6,8 @@ import StoneForm from "./StoneForm";
 import NodejsApiService from "app/services/api/nodejs.api.service";
 import { parseBody } from "app/utils/parsers/body.parser";
 import { useActionData } from "@remix-run/react";
+import BBStoneForm from "./StoneForm";
+import BBStonesList from "./BBStonesList";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {};
 
@@ -18,7 +20,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const body = parseBody(formData);
 
     const response = await NodejsApiService.createBBStone(body);
-    console.log("sagy17", response);
+
+    return response; // ✅ return the whole response with stone
+  } else if (request.method === "POST" && actionType === "getStones") {
+    const formData = await request.formData();
+    const stoneType = formData.get("stoneType");
+    if (stoneType !== "Lab Grown" && stoneType !== "Natural") {
+      return { success: false, error: "Invalid stone type" };
+    }
+    const response = await NodejsApiService.fetchBBStones({ stoneType });
+    // const response = await NodejsApiService.createBBStone(body);
 
     return response; // ✅ return the whole response with stone
   }
@@ -39,7 +50,8 @@ export default function BBsInventoryAdmin() {
           </Text>
         </Layout.Section>
         <Layout.Section>
-          <StoneForm />
+          <BBStoneForm />
+          <BBStonesList />
         </Layout.Section>
       </Layout>
     </Page>

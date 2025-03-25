@@ -38,7 +38,7 @@ export default function CreateStonesProducts() {
   const fetchStones = async () => {
     console.log("Fetching stones with:", { shape, carat, color, limit });
 
-    const response = await NodeJsApiService.fetchStones({
+    const response = await NodeJsApiService.fetchUniStones({
       shape,
       carat,
       color,
