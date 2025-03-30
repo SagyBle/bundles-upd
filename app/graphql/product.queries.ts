@@ -371,3 +371,16 @@ export const GRAPHQL_TAGS_ADD = `#graphql
     }
   }
 `;
+
+export const GRAPHQL_TAGS_REMOVE = `#graphql
+  mutation removeTags($id: ID!, $tags: [String!]!) {
+    tagsRemove(id: $id, tags: $tags) {
+      node {
+        id
+      }
+      userErrors {
+        message
+      }
+    }
+  }
+`;

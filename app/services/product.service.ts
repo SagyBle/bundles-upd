@@ -9,6 +9,7 @@ import {
   GRAPHQL_NEW_CREATE_PRODUCT,
   GRAPHQL_NEW_UPDATE_PRODUCT,
   GRAPHQL_POPULATE_PRODUCT,
+  GRAPHQL_TAGS_REMOVE,
   GRAPHQL_UPDATE_INVENTORY_ITEM,
   GRAPHQL_UPDATE_LIST_METAFIELD,
   GRAPHQL_UPDATE_PRODUCT_VARIANTS,
@@ -544,6 +545,39 @@ const addTagsToProduct = async (
   }
 };
 
+const removeTagsFromProduct = async (
+  auth: any,
+  request: Request,
+  input: {
+    productId: string;
+    tags: string[];
+  },
+) => {
+  try {
+    const variables = {
+      id: input.productId,
+      tags: input.tags,
+    };
+
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_TAGS_REMOVE,
+      variables,
+    );
+
+    const userErrors = data?.tagsAdd?.userErrors || [];
+    if (userErrors.length > 0) {
+      console.error("❌ Tag Remove Errors:", userErrors);
+      return null;
+    }
+
+    return data?.tagsAdd?.node?.id || null;
+  } catch (error) {
+    console.error("❌ Error removing tags from product:", error);
+    return null;
+  }
+};
+
 export default {
   newCreateProduct,
   newUpdateProductVariants,
@@ -560,4 +594,5 @@ export default {
   // addValueToListMetafield,
   updateListMetafield,
   addTagsToProduct,
+  removeTagsFromProduct,
 };

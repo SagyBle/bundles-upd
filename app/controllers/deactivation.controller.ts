@@ -1,4 +1,3 @@
-import { DeactivationReason } from "app/enums/deactivationReason";
 import { TagKey } from "app/enums/tag.enums";
 import poolService from "app/services/pool.service";
 import productService from "app/services/product.service";
@@ -44,12 +43,20 @@ const deactivateStoneProduct = async (request: Request) => {
     const shopifyProductGid = fetchedProductsByTag[0]?.node?.id;
     console.log("sagy190", { shopifyProductGid }, { stoneProduct });
 
-    // TODO: Already inactive/sold logic!
-    // if (reason === DeactivationReason.STONE_BOUGHT){
+    const inactiveTags = Tag.findInactiveStatusTags(stoneProduct.tags);
 
-    // }
+    // If stone was sold, notice customer support.
+    if (inactiveTags && inactiveTags.length > 0) {
+      console.log(
+        "sagy210",
+        "*%*%*%*%*%*%*%*%*% Stone Bought although it's Sold *%*%*%*%*%*%*%*%*%",
+      );
+    }
 
-    const inactiveTag = Tag.generate(TagKey.Status, `inactive_${reason}`);
+    console.log("sagy190.1", { inactiveTags });
+
+    const inactiveTag = Tag.generateInactiveStatus(reason);
+
     const inactiveStoneTagAdded = await productService.addTagsToProduct(
       { admin },
       request,
@@ -71,13 +78,6 @@ const deactivateStoneProduct = async (request: Request) => {
     console.log("sagy193", { ringsMetafield });
     const relatedRingsProductGids = JSON.parse(ringsMetafield.value);
     console.log("sagy194", relatedRingsProductGids);
-
-    // TODO: make it automatic!
-    // TODO: see what paramters are get regularlly
-
-    // tags: [
-    // 'Color_E', 'Shape_Marquise', 'stone_id_1234', 'Weight_1.0'
-    // ]
 
     const parsed = Tag.parseMany(stoneProduct.tags);
     console.log("sagy201", parsed);
