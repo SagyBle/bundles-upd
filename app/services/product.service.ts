@@ -10,6 +10,7 @@ import {
   GRAPHQL_NEW_UPDATE_PRODUCT,
   GRAPHQL_POPULATE_PRODUCT,
   GRAPHQL_UPDATE_INVENTORY_ITEM,
+  GRAPHQL_UPDATE_LIST_METAFIELD,
   GRAPHQL_UPDATE_PRODUCT_VARIANTS,
 } from "app/graphql/product.queries";
 import { authenticate } from "app/shopify.server";
@@ -349,6 +350,92 @@ const newUpdateInventoryItem = async (
   }
 };
 
+// SAGY: continue from here, modify it to work with flow of deactivation.
+const removeValueFromListMetafield = async (
+  auth: any,
+  request: Request,
+  productId: string, // this product has the metafield, we want to remove the value from
+  key: string,
+  namespace: string,
+  valueToRemove: string,
+) => {
+  console.log(
+    "sagy21",
+    `remove this value: ${valueToRemove} from metafield : ${namespace}.${key} in product: ${productId}`,
+  );
+  // get the metafield list value
+  const metafields = await getProductMetafields(request, {
+    productId,
+  });
+
+  console.log("sagy300", metafields);
+  const metafiledToModify = metafields?.find(
+    (metafield: any) =>
+      metafield.key === key && metafield.namespace === namespace,
+  );
+
+  console.log("sagy301", metafiledToModify.value);
+
+  const metafieldListToModify = JSON.parse(metafiledToModify.value);
+
+  const modifiedMetafieldValue = metafieldListToModify.filter(
+    (value: any) => value !== valueToRemove,
+  );
+
+  // modify the list: remove the value
+  console.log("sagy302", modifiedMetafieldValue);
+
+  // update the metafield with the new list
+  const updatedListMetafield = await updateListMetafield(auth, request, {
+    productId,
+    valueToAssign: JSON.stringify(modifiedMetafieldValue),
+    namespace,
+    key,
+  });
+
+  console.log("sagy303", updatedListMetafield);
+
+  // return the new list
+  return updatedListMetafield;
+};
+
+const updateListMetafield = async (
+  auth: any,
+  request: Request,
+  input: {
+    productId: string;
+    valueToAssign: string; // should be a JSON stringified list of product GIDs
+    namespace: string;
+    key: string;
+  },
+) => {
+  try {
+    const variables = {
+      productId: input.productId,
+      valueToAssign: input.valueToAssign,
+      namespace: input.namespace,
+      key: input.key,
+    };
+
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_UPDATE_LIST_METAFIELD,
+      variables,
+    );
+
+    const userErrors = data?.metafieldsSet?.userErrors || [];
+    if (userErrors.length > 0) {
+      console.error("❌ Metafield Update Errors:", userErrors);
+      return null;
+    }
+
+    return data?.metafieldsSet?.metafields || null;
+  } catch (error) {
+    console.error("❌ Error updating list metafield:", error);
+    return null;
+  }
+};
+
 export default {
   newCreateProduct,
   newUpdateProductVariants,
@@ -361,4 +448,6 @@ export default {
   newUpdateInventoryItem,
   getProductDefaultVariantId,
   getProductOptions,
+  removeValueFromListMetafield,
+  updateListMetafield,
 };

@@ -327,3 +327,34 @@ export const GRAPHQL_UPDATE_INVENTORY_ITEM = `#graphql
     }
   }
 `;
+
+export const GRAPHQL_UPDATE_LIST_METAFIELD = `#graphql
+  mutation UpdateListMetafield(
+    $productId: ID!,
+    $valueToAssign: String!,
+    $namespace: String!,
+    $key: String!
+  ) {
+    metafieldsSet(
+      metafields: [
+        {
+          ownerId: $productId
+          namespace: $namespace
+          key: $key
+          type: "list.product_reference"
+          value: $valueToAssign
+        }
+      ]
+    ) {
+      metafields {
+        id
+        key
+        value
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;

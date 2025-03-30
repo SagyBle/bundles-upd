@@ -42,6 +42,8 @@ export const fetchProductsByTag = async (
     variables,
   );
 
+  console.log("sagy137", data);
+
   const products = data?.products?.edges || [];
   return products;
 };
