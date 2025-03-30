@@ -358,3 +358,16 @@ export const GRAPHQL_UPDATE_LIST_METAFIELD = `#graphql
     }
   }
 `;
+
+export const GRAPHQL_TAGS_ADD = `#graphql
+  mutation addTags($id: ID!, $tags: [String!]!) {
+    tagsAdd(id: $id, tags: $tags) {
+      node {
+        id
+      }
+      userErrors {
+        message
+      }
+    }
+  }
+`;

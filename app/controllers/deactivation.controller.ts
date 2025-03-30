@@ -1,3 +1,4 @@
+import { DeactivationReason } from "app/enums/deactivationReason";
 import { TagKey } from "app/enums/tag.enums";
 import poolService from "app/services/pool.service";
 import productService from "app/services/product.service";
@@ -14,7 +15,8 @@ const deactivateStoneProduct = async (request: Request) => {
 
     const formData = await request.formData();
     const stone_id = formData.get("stone_id") as string;
-    console.log("sagy131.5", { stone_id });
+    const reason = formData.get("reason") as string;
+    console.log("sagy131.5", { stone_id, reason });
 
     const stoneIdTag = Tag.generate(TagKey.StoneId, stone_id);
     console.log("sagy132", { stone_id }, { stoneIdTag });
@@ -41,6 +43,20 @@ const deactivateStoneProduct = async (request: Request) => {
 
     const shopifyProductGid = fetchedProductsByTag[0]?.node?.id;
     console.log("sagy190", { shopifyProductGid }, { stoneProduct });
+
+    // TODO: Already inactive/sold logic!
+    // if (reason === DeactivationReason.STONE_BOUGHT){
+
+    // }
+
+    const inactiveTag = Tag.generate(TagKey.Status, `inactive_${reason}`);
+    const inactiveStoneTagAdded = await productService.addTagsToProduct(
+      { admin },
+      request,
+      { productId: shopifyProductGid, tags: [inactiveTag] },
+    );
+
+    // add the tag sold/inactive to the stone!
 
     const metafields = await productService.getProductMetafields(request, {
       productId: shopifyProductGid,

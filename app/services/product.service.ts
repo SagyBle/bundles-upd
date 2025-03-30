@@ -507,6 +507,43 @@ const updateListMetafield = async (
   }
 };
 
+import { GRAPHQL_TAGS_ADD } from "app/graphql/product.queries";
+
+// ...
+
+const addTagsToProduct = async (
+  auth: any,
+  request: Request,
+  input: {
+    productId: string;
+    tags: string[];
+  },
+) => {
+  try {
+    const variables = {
+      id: input.productId,
+      tags: input.tags,
+    };
+
+    const data: any = await ShopifyService.executeGraphQL(
+      auth,
+      GRAPHQL_TAGS_ADD,
+      variables,
+    );
+
+    const userErrors = data?.tagsAdd?.userErrors || [];
+    if (userErrors.length > 0) {
+      console.error("❌ Tag Add Errors:", userErrors);
+      return null;
+    }
+
+    return data?.tagsAdd?.node?.id || null;
+  } catch (error) {
+    console.error("❌ Error adding tags to product:", error);
+    return null;
+  }
+};
+
 export default {
   newCreateProduct,
   newUpdateProductVariants,
@@ -522,4 +559,5 @@ export default {
   modifyListMetafield,
   // addValueToListMetafield,
   updateListMetafield,
+  addTagsToProduct,
 };
