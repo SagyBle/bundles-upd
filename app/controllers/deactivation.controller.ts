@@ -3,6 +3,7 @@ import poolService from "app/services/pool.service";
 import productService from "app/services/product.service";
 import { checkRequestType } from "app/utils/auth.util";
 import { generateStoneQuery } from "app/utils/metafieldsToQuery";
+import { pickBestReplacementStone } from "app/utils/replacement.util";
 import { Tag } from "app/utils/Tag.util";
 import { l } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 
@@ -20,17 +21,17 @@ const deactivateStoneProduct = async (request: Request) => {
     console.log("sagy132", { stone_id }, { stoneIdTag });
 
     // get shopify producy by stone_id (which is tag).
-    const queryString = generateStoneQuery({ stoneId: stone_id });
+    const queryStringByStoneId = generateStoneQuery({ stoneId: stone_id });
     console.log(
       "sagy133",
-      { queryString },
+      { queryStringByStoneId },
       "supposed to see here valid query string to try in the graphiql",
     );
 
     const fetchedProductsByTag = await poolService.fetchProductsByTag(
       { admin },
       request,
-      queryString,
+      queryStringByStoneId,
     );
 
     if (!fetchedProductsByTag || fetchedProductsByTag.length !== 1) {
@@ -64,17 +65,70 @@ const deactivateStoneProduct = async (request: Request) => {
     const relatedRingsProductGids = JSON.parse(ringsMetafield.value);
     console.log("sagy194", relatedRingsProductGids);
 
+    // relatedRingsProductGids.forEach(async (ringProductGid: string) => {
+    //   await productService.removeValueFromListMetafield(
+    //     { admin },
+    //     request,
+    //     ringProductGid,
+    //     "relatedstones",
+    //     "custom",
+    //     shopifyProductGid,
+    //   );
+    // });
+
+    // get new ring with same parameters.
+    // TODO: make it automatic!
+    // TODO: see what paramters are get regularlly
+
+    const queryStringByStoneTags = generateStoneQuery({
+      stonesShapes: ["Oval"],
+      stonesWeights: ["1.5"],
+      stonesColors: ["E"],
+    });
+
+    console.log("sagy195", { queryStringByStoneTags });
+
+    const fetchedReplacementsProducts = await poolService.fetchProductsByTag(
+      { admin },
+      request,
+      queryStringByStoneTags,
+    );
+
+    console.log(
+      "sagy196",
+      fetchedReplacementsProducts,
+      "look for 10082617131295",
+    );
+    console.log(
+      "******************",
+      fetchedReplacementsProducts,
+      "******************",
+    );
+
+    const replacementStone = pickBestReplacementStone(
+      fetchedReplacementsProducts,
+    );
+
+    console.log("sagy197", { replacementStone });
+
+    if (!replacementStone) {
+      console.log("No replacement stone found");
+      return;
+    }
+
+    const replacementStoneId = replacementStone?.node?.id;
+    console.log("sagy198", "Replacement Stone ID:", replacementStoneId);
+
     relatedRingsProductGids.forEach(async (ringProductGid: string) => {
-      await productService.removeValueFromListMetafield(
+      await productService.modifyListMetafield(
         { admin },
         request,
         ringProductGid,
         "relatedstones",
         "custom",
-        shopifyProductGid,
+        { valueToRemove: shopifyProductGid, valueToAdd: replacementStoneId },
       );
     });
-
     // const relatedRingsProductGids = JSON.parse(ringsMetafield.value);
 
     // relatedRingsProductGids.forEach(async (ringProductGid: string) => {

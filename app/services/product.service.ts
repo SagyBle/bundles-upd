@@ -351,51 +351,122 @@ const newUpdateInventoryItem = async (
 };
 
 // SAGY: continue from here, modify it to work with flow of deactivation.
-const removeValueFromListMetafield = async (
+const modifyListMetafield = async (
   auth: any,
   request: Request,
-  productId: string, // this product has the metafield, we want to remove the value from
+  productId: string,
   key: string,
   namespace: string,
-  valueToRemove: string,
+  options: {
+    valueToRemove?: string;
+    valueToAdd?: string;
+  },
 ) => {
   console.log(
-    "sagy21",
-    `remove this value: ${valueToRemove} from metafield : ${namespace}.${key} in product: ${productId}`,
+    "sagy_mod",
+    `Modify metafield list ${namespace}.${key} for product: ${productId}`,
   );
-  // get the metafield list value
-  const metafields = await getProductMetafields(request, {
-    productId,
-  });
 
-  console.log("sagy300", metafields);
-  const metafiledToModify = metafields?.find(
+  const { valueToRemove, valueToAdd } = options;
+
+  // Fetch current metafields
+  const metafields = await getProductMetafields(request, { productId });
+
+  const metafieldToModify = metafields?.find(
     (metafield: any) =>
       metafield.key === key && metafield.namespace === namespace,
   );
 
-  console.log("sagy301", metafiledToModify.value);
+  if (!metafieldToModify) {
+    console.warn("Metafield not found.");
+    return null;
+  }
 
-  const metafieldListToModify = JSON.parse(metafiledToModify.value);
+  let values: string[] = [];
 
-  const modifiedMetafieldValue = metafieldListToModify.filter(
-    (value: any) => value !== valueToRemove,
-  );
+  try {
+    values = JSON.parse(metafieldToModify.value);
+  } catch (error) {
+    console.error("Failed to parse metafield value as JSON array", error);
+    return null;
+  }
 
-  // modify the list: remove the value
-  console.log("sagy302", modifiedMetafieldValue);
+  // Remove value if needed
+  if (valueToRemove) {
+    values = values.filter((v) => v !== valueToRemove);
+  }
 
-  // update the metafield with the new list
-  const updatedListMetafield = await updateListMetafield(auth, request, {
+  // Add value if needed and not a duplicate
+  if (valueToAdd && !values.includes(valueToAdd)) {
+    values.push(valueToAdd);
+  }
+
+  console.log("sagy_mod_finalList", values);
+
+  // If nothing changed, return
+  if (!valueToAdd && !valueToRemove) {
+    console.log("Nothing to modify in metafield.");
+    return values;
+  }
+
+  const updated = await updateListMetafield(auth, request, {
     productId,
-    valueToAssign: JSON.stringify(modifiedMetafieldValue),
+    valueToAssign: JSON.stringify(values),
     namespace,
     key,
   });
 
-  console.log("sagy303", updatedListMetafield);
+  console.log("sagy_mod_updated", updated);
 
-  // return the new list
+  return updated;
+};
+
+const addValueToListMetafield = async (
+  auth: any,
+  request: Request,
+  productId: string, // the product that owns the metafield
+  key: string,
+  namespace: string,
+  valueToAdd: string,
+) => {
+  console.log(
+    "sagy_add",
+    `add this value: ${valueToAdd} to metafield : ${namespace}.${key} in product: ${productId}`,
+  );
+
+  // 1. Get current metafield list value
+  const metafields = await getProductMetafields(request, { productId });
+
+  const metafieldToModify = metafields?.find(
+    (metafield: any) =>
+      metafield.key === key && metafield.namespace === namespace,
+  );
+
+  if (!metafieldToModify) {
+    console.warn("Metafield not found for adding.");
+    return null;
+  }
+
+  const currentValues: string[] = JSON.parse(metafieldToModify.value);
+
+  // 2. Avoid duplicates
+  if (currentValues.includes(valueToAdd)) {
+    console.log("Value already exists in metafield list.");
+    return currentValues;
+  }
+
+  const newValues = [...currentValues, valueToAdd];
+
+  // 3. Update metafield with new list
+  const updatedListMetafield = await updateListMetafield(auth, request, {
+    productId,
+    valueToAssign: JSON.stringify(newValues),
+    namespace,
+    key,
+  });
+
+  console.log("sagy_add_result", updatedListMetafield);
+
   return updatedListMetafield;
 };
 
@@ -448,6 +519,7 @@ export default {
   newUpdateInventoryItem,
   getProductDefaultVariantId,
   getProductOptions,
-  removeValueFromListMetafield,
+  modifyListMetafield,
+  // addValueToListMetafield,
   updateListMetafield,
 };
