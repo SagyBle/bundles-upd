@@ -115,6 +115,12 @@ const deactivateStoneProduct = async (request: Request) => {
       Logger.error(
         `Not found replacement stone with the parameters: ${parsedStoneTags}`,
       );
+      return {
+        success: true,
+        deactivatedStoneId: stone_id,
+        deactivatedStoneProductGid: shopifyProductGid,
+        replacementStoneProductGid: undefined,
+      };
     }
     Logger.info(`found replacement stone ${replacementStone}`);
 
@@ -155,6 +161,9 @@ const deactivateStoneProduct = async (request: Request) => {
 
     return {
       success: true,
+      deactivatedStoneId: stone_id,
+      deactivatedStoneProductGid: shopifyProductGid,
+      replacementStoneProductGid: replacementStoneId,
     };
   } catch (error: any) {
     Logger.error(`Error deactivating product: ${error.message}`);

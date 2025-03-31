@@ -22,19 +22,19 @@ export class Logger {
   }
 
   static warning(message: any) {
-    console.warn(this.format("WARNING", message));
+    console.log(this.format("WARNING", message));
   }
 
   static error(message: any) {
-    console.error(this.format("ERROR", message));
+    console.log(this.format("ERROR", message));
   }
 
   static critical(message: any) {
-    console.error(this.format("CRITICAL", message));
+    console.log(this.format("CRITICAL", message));
   }
 
   // Default log is info
   static log(message: any) {
-    this.info(message);
+    this.log(message);
   }
 }
