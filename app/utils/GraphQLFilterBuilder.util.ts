@@ -20,8 +20,14 @@ export class GraphQLFilterBuilder {
   /**
    * Adds an AND group of tag filters (e.g., `(tag:Shape_Marquise AND tag:Clarity_VS1)`).
    */
-  addAndGroup(tags: string[]) {
-    this.filters.push(`(${tags.map((tag) => `tag:${tag}`).join(" AND ")})`);
+  addAndGroup(tags: string[], options: { not?: boolean } = {}) {
+    const { not = false } = options;
+
+    const formatted = tags
+      .map((tag) => (not ? `NOT tag:${tag}` : `tag:${tag}`))
+      .join(" AND ");
+
+    this.filters.push(`(${formatted})`);
     return this;
   }
 

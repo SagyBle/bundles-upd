@@ -127,6 +127,7 @@ export const getProductMetafields = async (
   });
 
   const responseJson = await response.json();
+  console.log("sagy201", { responseJson });
 
   return (
     responseJson.data?.product?.metafields?.edges.map(
@@ -372,32 +373,40 @@ const modifyListMetafield = async (
 
   // Fetch current metafields
   const metafields = await getProductMetafields(request, { productId });
+  console.log("sagy212", metafields);
 
   const metafieldToModify = metafields?.find(
     (metafield: any) =>
       metafield.key === key && metafield.namespace === namespace,
   );
 
-  if (!metafieldToModify) {
-    console.warn("Metafield not found.");
-    return null;
-  }
-
   let values: string[] = [];
 
-  try {
-    values = JSON.parse(metafieldToModify.value);
-  } catch (error) {
-    console.error("Failed to parse metafield value as JSON array", error);
-    return null;
+  if (metafieldToModify) {
+    try {
+      values = JSON.parse(metafieldToModify.value);
+    } catch (error) {
+      console.error("Failed to parse metafield value as JSON array", error);
+      return null;
+    }
+
+    // Remove value if needed
+    if (valueToRemove) {
+      values = values.filter((v) => v !== valueToRemove);
+    }
+  } else {
+    // If no metafield found and we're only adding a value, just initialize
+    if (!valueToRemove && valueToAdd) {
+      console.warn(
+        "Metafield not found — initializing new list with valueToAdd",
+      );
+    } else {
+      console.warn("Metafield not found and nothing to remove — aborting.");
+      return null;
+    }
   }
 
-  // Remove value if needed
-  if (valueToRemove) {
-    values = values.filter((v) => v !== valueToRemove);
-  }
-
-  // Add value if needed and not a duplicate
+  // Add value if needed and not already present
   if (valueToAdd && !values.includes(valueToAdd)) {
     values.push(valueToAdd);
   }

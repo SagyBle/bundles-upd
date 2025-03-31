@@ -6,6 +6,8 @@
  * @returns A single selected stone or null if list is empty
  */
 export function pickBestReplacementStone(suggestedStones: any[]): any | null {
+  console.log("sagy190", { suggestedStones: JSON.stringify(suggestedStones) });
+
   if (!suggestedStones.length) return null;
 
   const randomIndex = Math.floor(Math.random() * suggestedStones.length);

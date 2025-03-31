@@ -1,12 +1,14 @@
 import { TagKey } from "app/enums/tag.enums";
 import { GraphQLFilterBuilder } from "./GraphQLFilterBuilder.util";
 import { Tag } from "./Tag.util";
+import { DeactivationReason } from "app/enums/deactivationReason";
 
 export function generateStoneQuery(filters: {
   stonesShapes?: string[];
   stonesWeights?: string[];
   stonesColors?: string[];
   stoneId?: string;
+  active?: boolean;
 }): string {
   const builder = new GraphQLFilterBuilder();
 
@@ -36,6 +38,14 @@ export function generateStoneQuery(filters: {
 
   if (filters.stoneId) {
     builder.addAndGroup([Tag.generate(TagKey.StoneId, filters.stoneId)]);
+  }
+
+  console.log("sagy14");
+
+  if (filters.active) {
+    const notInactiveTag = Tag.generate(TagKey.Status, "inactive");
+    // TODO: add the not from the GraphQLFilterBuilder
+    builder.addAndGroup([notInactiveTag], { not: true });
   }
 
   return builder.build();

@@ -1,32 +1,31 @@
 import { TagKey } from "app/enums/tag.enums";
+import { Logger } from "app/logger/Logger";
 import poolService from "app/services/pool.service";
 import productService from "app/services/product.service";
 import { checkRequestType } from "app/utils/auth.util";
+import { isGid } from "app/utils/gid.util";
+import { InactiveStonePurchaseHandler } from "app/utils/InactiveStonePurchase";
 import { generateStoneQuery } from "app/utils/metafieldsToQuery";
 import { pickBestReplacementStone } from "app/utils/replacement.util";
 import { Tag } from "app/utils/Tag.util";
 
 const deactivateStoneProduct = async (request: Request) => {
-  console.log("sagy131");
-
+  Logger.info("deactivateStoneProduct started");
   try {
-    const { admin, isAdmin } = await checkRequestType(request);
-
+    const { admin } = await checkRequestType(request);
     const formData = await request.formData();
     const stone_id = formData.get("stone_id") as string;
     const reason = formData.get("reason") as string;
-    console.log("sagy131.5", { stone_id, reason });
+
+    console.log("sagy102", { stone_id, reason });
+
+    Logger.info(`deactivating stone_id: ${stone_id}, because of: ${reason}`);
 
     const stoneIdTag = Tag.generate(TagKey.StoneId, stone_id);
-    console.log("sagy132", { stone_id }, { stoneIdTag });
 
-    // get shopify producy by stone_id (which is tag).
+    // Finding the shopify product of the stone.
     const queryStringByStoneId = generateStoneQuery({ stoneId: stone_id });
-    console.log(
-      "sagy133",
-      { queryStringByStoneId },
-      "supposed to see here valid query string to try in the graphiql",
-    );
+    console.log("sagy103", { queryStringByStoneId });
 
     const fetchedProductsByTag = await poolService.fetchProductsByTag(
       { admin },
@@ -34,61 +33,69 @@ const deactivateStoneProduct = async (request: Request) => {
       queryStringByStoneId,
     );
 
+    console.log("sagy104", { fetchedProductsByTag });
+
+    // If the stone shopify product wasn't found, throw error.
     if (!fetchedProductsByTag || fetchedProductsByTag.length !== 1) {
       throw new Error("❌ Expected exactly one product node in edges.");
     }
 
+    // Get stone shopify product object and gid.
     const stoneProduct = fetchedProductsByTag[0]?.node;
-
     const shopifyProductGid = fetchedProductsByTag[0]?.node?.id;
-    console.log("sagy190", { shopifyProductGid }, { stoneProduct });
 
-    const inactiveTags = Tag.findInactiveStatusTags(stoneProduct.tags);
+    console.log("sagy105", { shopifyProductGid });
 
-    // If stone was sold, notice customer support.
-    if (inactiveTags && inactiveTags.length > 0) {
-      console.log(
-        "sagy210",
-        "*%*%*%*%*%*%*%*%*% Stone Bought although it's Sold *%*%*%*%*%*%*%*%*%",
-      );
+    if (!isGid(shopifyProductGid)) {
+      throw new Error("Can't get valid shopify product gid.");
+    }
+    console.log("sagy106.5", { "stoneProduct.tags": stoneProduct.tags });
+
+    // If stone was already sold, notice customer support.
+    const isInactiveStone = Tag.hasInactiveStatus(stoneProduct.tags);
+    if (isInactiveStone) {
+      InactiveStonePurchaseHandler.notifyCustomerService(stone_id);
     }
 
-    console.log("sagy190.1", { inactiveTags });
+    console.log("sagy106", { isInactiveStone });
 
-    const inactiveTag = Tag.generateInactiveStatus(reason);
-
+    const inactiveTags = Tag.generateInactiveStatus(reason);
     const inactiveStoneTagAdded = await productService.addTagsToProduct(
       { admin },
       request,
-      { productId: shopifyProductGid, tags: [inactiveTag] },
+      { productId: shopifyProductGid, tags: inactiveTags },
     );
 
-    // add the tag sold/inactive to the stone!
+    if (!inactiveStoneTagAdded) {
+      Logger.error("Stone was sold but Inactive Stone Tag wasn't Added");
+    }
+
+    Logger.info(`Inactive ${reason} Stone Tag Added`);
 
     const metafields = await productService.getProductMetafields(request, {
       productId: shopifyProductGid,
     });
 
-    console.log("sagy191", { metafields });
-
     const ringsMetafield = metafields.find(
       (field: any) => field.key === "rings" && field.namespace === "custom",
     );
 
-    console.log("sagy193", { ringsMetafield });
     const relatedRingsProductGids = JSON.parse(ringsMetafield.value);
-    console.log("sagy194", relatedRingsProductGids);
 
-    const parsed = Tag.parseMany(stoneProduct.tags);
-    console.log("sagy201", parsed);
+    console.log("sagy108", { relatedRingsProductGids });
+    console.log("sagy109.0", stoneProduct.tags);
 
+    const parsedStoneTags = Tag.parseMany(stoneProduct.tags);
+    console.log("sagy13", parsedStoneTags);
+
+    // TODO: add a stone without tag of sold
     const queryStringByStoneTags = generateStoneQuery({
-      stonesShapes: [parsed.shape],
-      stonesWeights: [parsed.weight],
-      stonesColors: [parsed.color],
+      stonesShapes: [parsedStoneTags.shape.value],
+      stonesWeights: [parsedStoneTags.weight.value],
+      stonesColors: [parsedStoneTags.color.value],
+      active: true,
     });
-
-    console.log("sagy195", { queryStringByStoneTags });
+    console.log("sagy15", queryStringByStoneTags);
 
     const fetchedReplacementsProducts = await poolService.fetchProductsByTag(
       { admin },
@@ -96,33 +103,30 @@ const deactivateStoneProduct = async (request: Request) => {
       queryStringByStoneTags,
     );
 
-    console.log(
-      "sagy196",
-      fetchedReplacementsProducts,
-      "look for 10082617131295",
-    );
-    console.log(
-      "******************",
-      fetchedReplacementsProducts,
-      "******************",
-    );
+    console.log("sagy16", fetchedReplacementsProducts);
 
     const replacementStone = pickBestReplacementStone(
       fetchedReplacementsProducts,
     );
 
-    console.log("sagy197", { replacementStone });
+    console.log("sagy17", replacementStone);
 
     if (!replacementStone) {
-      console.log("No replacement stone found");
-      return;
+      Logger.error(
+        `Not found replacement stone with the parameters: ${parsedStoneTags}`,
+      );
     }
+    Logger.info(`found replacement stone ${replacementStone}`);
 
     const replacementStoneId = replacementStone?.node?.id;
-    console.log("sagy198", "Replacement Stone ID:", replacementStoneId);
 
+    console.log("sagy18", replacementStoneId);
+
+    Logger.info(
+      `Replacing related stone valueToRemove: ${shopifyProductGid} with valueToAdd: ${replacementStoneId} in:`,
+    );
     relatedRingsProductGids.forEach(async (ringProductGid: string) => {
-      await productService.modifyListMetafield(
+      const ringRelatedStonesUpdated = await productService.modifyListMetafield(
         { admin },
         request,
         ringProductGid,
@@ -130,14 +134,9 @@ const deactivateStoneProduct = async (request: Request) => {
         "custom",
         { valueToRemove: shopifyProductGid, valueToAdd: replacementStoneId },
       );
+      Logger.info(`${ringProductGid}: ${ringRelatedStonesUpdated}`);
 
-      // add to the stone the realted ring
-      console.log(
-        "sagy199",
-        `add to ${replacementStoneId}, to the metafield custom.relatedstones the value to add: ${ringProductGid}`,
-      );
-
-      await productService.modifyListMetafield(
+      const stoneRelatedRingsUpdated = await productService.modifyListMetafield(
         { admin },
         request,
         replacementStoneId,
@@ -147,13 +146,18 @@ const deactivateStoneProduct = async (request: Request) => {
           valueToAdd: ringProductGid,
         },
       );
+      Logger.info(
+        `${replacementStoneId}: in custom.rings metafield was updated with: ${ringProductGid}`,
+      );
     });
+
+    Logger.info("deactivateStoneProduct ends successfully");
 
     return {
       success: true,
     };
   } catch (error: any) {
-    console.error("Error fetching products by tag:", error);
+    Logger.error(`Error deactivating product: ${error.message}`);
     return { success: false, error: error.message };
   }
 };
