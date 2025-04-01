@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f1ba0e069721f93052cfa0eb3b26fc38"
-application_url = "https://tender-answers-canyon-cap.trycloudflare.com"
+application_url = "https://stolen-physical-ripe-publication.trycloudflare.com"
 embedded = true
 name = "budnles-upd"
 handle = "budnles-upd"
@@ -27,9 +27,9 @@ scopes = "write_products, read_inventory, write_inventory"
 
 [auth]
 redirect_urls = [
-  "https://tender-answers-canyon-cap.trycloudflare.com/auth/callback",
-  "https://tender-answers-canyon-cap.trycloudflare.com/auth/shopify/callback",
-  "https://tender-answers-canyon-cap.trycloudflare.com/api/auth/callback"
+  "https://stolen-physical-ripe-publication.trycloudflare.com/auth/callback",
+  "https://stolen-physical-ripe-publication.trycloudflare.com/auth/shopify/callback",
+  "https://stolen-physical-ripe-publication.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

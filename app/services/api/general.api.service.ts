@@ -24,6 +24,8 @@ export default class ApiService {
   }
 
   async put<T>(endpoint: string, body: any): Promise<T> {
+    console.log(`sagy28 ${this.baseUrl}${endpoint}`);
+
     return this.request<T>(`${this.baseUrl}${endpoint}`, "PUT", body);
   }
 

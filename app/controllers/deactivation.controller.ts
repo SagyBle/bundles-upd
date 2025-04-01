@@ -6,24 +6,44 @@ import { checkRequestType } from "app/utils/auth.util";
 import { isGid } from "app/utils/gid.util";
 import { InactiveStonePurchaseHandler } from "app/utils/InactiveStonePurchase";
 import { generateStoneQuery } from "app/utils/metafieldsToQuery";
+import { InventoryUpdate } from "app/utils/parsers/inventoryUpdates/uni.inventoryUpdates.parser";
 import { pickBestReplacementStone } from "app/utils/replacement.util";
 import { Tag } from "app/utils/Tag.util";
 
-const deactivateStoneProduct = async (request: Request) => {
+const deactivateStoneProduct = async (
+  request: Request,
+  inventoryUpdate?: InventoryUpdate,
+) => {
   Logger.info("deactivateStoneProduct started");
+
   try {
     const { admin } = await checkRequestType(request);
-    const formData = await request.formData();
-    const stone_id = formData.get("stone_id") as string;
-    const reason = formData.get("reason") as string;
+
+    // Support from inventoryUpdate (preferred)
+    let stone_id: string | null = null;
+    let reason: string | null = null;
+
+    if (inventoryUpdate) {
+      stone_id = inventoryUpdate.stone_id;
+      reason =
+        inventoryUpdate.updateType === "inactive" ? "apiUpdate" : "details";
+    } else {
+      // Fallback to formData
+      const formData = await request.formData();
+      stone_id = formData.get("stone_id") as string;
+      reason = formData.get("reason") as string;
+    }
+
+    if (!stone_id || !reason) {
+      throw new Error("Missing required stone_id or reason.");
+    }
 
     console.log("sagy102", { stone_id, reason });
-
-    Logger.info(`deactivating stone_id: ${stone_id}, because of: ${reason}`);
+    Logger.info(`Deactivating stone_id: ${stone_id}, because of: ${reason}`);
 
     const stoneIdTag = Tag.generate(TagKey.StoneId, stone_id);
 
-    // Finding the shopify product of the stone.
+    // Find Shopify product by stone_id
     const queryStringByStoneId = generateStoneQuery({ stoneId: stone_id });
     console.log("sagy103", { queryStringByStoneId });
 
@@ -32,26 +52,21 @@ const deactivateStoneProduct = async (request: Request) => {
       request,
       queryStringByStoneId,
     );
-
     console.log("sagy104", { fetchedProductsByTag });
 
-    // If the stone shopify product wasn't found, throw error.
     if (!fetchedProductsByTag || fetchedProductsByTag.length !== 1) {
       throw new Error("❌ Expected exactly one product node in edges.");
     }
 
-    // Get stone shopify product object and gid.
     const stoneProduct = fetchedProductsByTag[0]?.node;
-    const shopifyProductGid = fetchedProductsByTag[0]?.node?.id;
-
-    console.log("sagy105", { shopifyProductGid });
+    const shopifyProductGid = stoneProduct?.id;
 
     if (!isGid(shopifyProductGid)) {
-      throw new Error("Can't get valid shopify product gid.");
+      throw new Error("Can't get valid Shopify product GID.");
     }
+
     console.log("sagy106.5", { "stoneProduct.tags": stoneProduct.tags });
 
-    // If stone was already sold, notice customer support.
     const isInactiveStone = Tag.hasInactiveStatus(stoneProduct.tags);
     if (isInactiveStone) {
       InactiveStonePurchaseHandler.notifyCustomerService(stone_id);
@@ -83,12 +98,10 @@ const deactivateStoneProduct = async (request: Request) => {
     const relatedRingsProductGids = JSON.parse(ringsMetafield.value);
 
     console.log("sagy108", { relatedRingsProductGids });
-    console.log("sagy109.0", stoneProduct.tags);
 
     const parsedStoneTags = Tag.parseMany(stoneProduct.tags);
     console.log("sagy13", parsedStoneTags);
 
-    // TODO: add a stone without tag of sold
     const queryStringByStoneTags = generateStoneQuery({
       stonesShapes: [parsedStoneTags.shape.value],
       stonesWeights: [parsedStoneTags.weight.value],
@@ -108,7 +121,6 @@ const deactivateStoneProduct = async (request: Request) => {
     const replacementStone = pickBestReplacementStone(
       fetchedReplacementsProducts,
     );
-
     console.log("sagy17", replacementStone);
 
     if (!replacementStone) {
@@ -122,15 +134,14 @@ const deactivateStoneProduct = async (request: Request) => {
         replacementStoneProductGid: undefined,
       };
     }
-    Logger.info(`found replacement stone ${replacementStone}`);
 
     const replacementStoneId = replacementStone?.node?.id;
-
     console.log("sagy18", replacementStoneId);
 
     Logger.info(
       `Replacing related stone valueToRemove: ${shopifyProductGid} with valueToAdd: ${replacementStoneId} in:`,
     );
+
     relatedRingsProductGids.forEach(async (ringProductGid: string) => {
       const ringRelatedStonesUpdated = await productService.modifyListMetafield(
         { admin },

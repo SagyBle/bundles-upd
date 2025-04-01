@@ -17,6 +17,9 @@ class NodeJsApiService extends ApiService {
   async createBBStone<T>(data: Record<string, any>): Promise<T> {
     return this.post<T>("/api/stonesApi/bbInventory/createStone", data);
   }
+  async syncUniUpdates<T>(data: Record<string, any>): Promise<T> {
+    return this.put<T>("/api/stonesApi/uni/fetch-inventory-updates", data);
+  }
 }
 
 export default new NodeJsApiService();

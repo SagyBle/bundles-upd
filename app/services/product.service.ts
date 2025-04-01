@@ -116,18 +116,12 @@ export const getProductMetafields = async (
   request: Request,
   input: { productId: string },
 ) => {
-  console.log("sagy19");
-
   const { admin } = await authenticate.admin(request);
-
-  console.log("sagy200", input);
 
   const response = await admin.graphql(GRAPHQL_GET_PRODUCT_METAFIELDS, {
     variables: { input: input.productId },
   });
-
   const responseJson = await response.json();
-  console.log("sagy201", { responseJson });
 
   return (
     responseJson.data?.product?.metafields?.edges.map(
@@ -373,7 +367,6 @@ const modifyListMetafield = async (
 
   // Fetch current metafields
   const metafields = await getProductMetafields(request, { productId });
-  console.log("sagy212", metafields);
 
   const metafieldToModify = metafields?.find(
     (metafield: any) =>
@@ -425,8 +418,6 @@ const modifyListMetafield = async (
     namespace,
     key,
   });
-
-  console.log("sagy_mod_updated", updated);
 
   return updated;
 };
