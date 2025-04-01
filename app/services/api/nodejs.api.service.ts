@@ -7,8 +7,18 @@ class NodeJsApiService extends ApiService {
     super("http://localhost:3001");
   }
 
-  async fetchStones<T>(params: Record<string, any> = {}): Promise<T> {
+  async fetchUniStones<T>(params: Record<string, any> = {}): Promise<T> {
     return this.post<T>("/api/stonesApi/uni/test", params);
+  }
+  async fetchBBStones<T>(params: Record<string, any> = {}): Promise<T> {
+    return this.get<T>("/api/stonesApi/bbInventory/getStones", params);
+  }
+
+  async createBBStone<T>(data: Record<string, any>): Promise<T> {
+    return this.post<T>("/api/stonesApi/bbInventory/createStone", data);
+  }
+  async syncUniUpdates<T>(data: Record<string, any>): Promise<T> {
+    return this.put<T>("/api/stonesApi/uni/fetch-inventory-updates", data);
   }
 }
 

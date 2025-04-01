@@ -1,16 +1,19 @@
 import { TagKey } from "app/enums/tag.enums";
 import { GraphQLFilterBuilder } from "./GraphQLFilterBuilder.util";
 import { Tag } from "./Tag.util";
+import { DeactivationReason } from "app/enums/deactivationReason";
 
 export function generateStoneQuery(filters: {
-  stonesShapes: string[];
-  stonesWeights: string[];
-  stonesColors: string[];
+  stonesShapes?: string[];
+  stonesWeights?: string[];
+  stonesColors?: string[];
+  stoneId?: string;
+  active?: boolean;
 }): string {
   const builder = new GraphQLFilterBuilder();
 
   // Convert Shapes to Tag format and add as OR group
-  if (filters.stonesShapes.length > 0) {
+  if (filters.stonesShapes && filters.stonesShapes.length > 0) {
     const shapeTags = filters.stonesShapes.map((shape) =>
       Tag.generate(TagKey.Shape, shape),
     );
@@ -18,7 +21,7 @@ export function generateStoneQuery(filters: {
   }
 
   // Convert Colors to Tag format and add as OR group
-  if (filters.stonesColors.length > 0) {
+  if (filters.stonesColors && filters.stonesColors.length > 0) {
     const colorTags = filters.stonesColors.map((color) =>
       Tag.generate(TagKey.Color, color),
     );
@@ -26,11 +29,23 @@ export function generateStoneQuery(filters: {
   }
 
   // Convert Weights to Tag format and add as AND group (since a stone has one weight)
-  if (filters.stonesWeights.length > 0) {
+  if (filters.stonesWeights && filters.stonesWeights.length > 0) {
     const weightTags = filters.stonesWeights.map((weight) =>
       Tag.generate(TagKey.Weight, weight),
     );
     builder.addOrGroup(weightTags);
+  }
+
+  if (filters.stoneId) {
+    builder.addAndGroup([Tag.generate(TagKey.StoneId, filters.stoneId)]);
+  }
+
+  console.log("sagy14");
+
+  if (filters.active) {
+    const notInactiveTag = Tag.generate(TagKey.Status, "inactive");
+    // TODO: add the not from the GraphQLFilterBuilder
+    builder.addAndGroup([notInactiveTag], { not: true });
   }
 
   return builder.build();

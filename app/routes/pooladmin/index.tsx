@@ -14,6 +14,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "app/shopify.server";
 import PoolController from "app/controllers/pool.controller";
 import { fetchProductsByTag } from "app/services/pool.service";
+import poolController from "app/controllers/pool.controller";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
@@ -24,7 +25,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const url = new URL(request.url);
   const actionType = url.searchParams.get("action");
 
-  if (request.method === "PUT" && actionType === "type1") {
+  if (request.method === "PUT" && actionType === "syncUniLabgrown") {
+    console.log("sagy123");
+
+    return poolController.syncStoneUpdates(request);
+  } else if (request.method === "PUT" && actionType === "type1") {
     return PoolController.updatePoolDataType1(request);
   } else if (request.method === "PUT" && actionType === "type2") {
     return PoolController.updatePoolDataType2(request);
@@ -70,6 +75,13 @@ export default function PoolAdminPage() {
       shopify.toast.show(fetcher.data.message);
     }
   }, [fetcher.data, shopify]);
+
+  const handleSyncUniLabgrown = () => {
+    fetcher.submit(
+      {},
+      { method: "PUT", action: "/pooladmin?action=syncUniLabgrown" },
+    );
+  };
 
   const updatePoolDataType1 = () => {
     fetcher.submit({}, { method: "PUT", action: "/pooladmin?action=type1" });
@@ -131,6 +143,15 @@ export default function PoolAdminPage() {
     <Page>
       <Layout>
         <Layout.Section>
+          <Card>
+            <Text as="h2" variant="headingMd">
+              Sync Stone Inventories
+            </Text>
+            <Card>
+              <Text as="p">Uni</Text>
+              <Button onClick={handleSyncUniLabgrown}>Sync Uni Labgrown</Button>
+            </Card>
+          </Card>
           <Card>
             <Text as="h2" variant="headingMd">
               Pool Management

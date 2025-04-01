@@ -9,6 +9,9 @@ import PoolService from "app/services/pool.service";
 import ProductService from "app/services/product.service";
 import { parseRingMetafields } from "app/utils/product.util";
 import { generateStoneQuery } from "app/utils/metafieldsToQuery";
+import NodejsApiService from "app/services/api/nodejs.api.service";
+import deactivationController from "./deactivation.controller";
+import { InventoryUpdate } from "app/utils/parsers/inventoryUpdates/uni.inventoryUpdates.parser";
 
 const updatePoolDataType1 = async (request: Request) => {
   return { success: true, message: "Pool Type 1 updated successfully." };
@@ -154,10 +157,54 @@ const generateRingQuery = async (request: Request) => {
   }
 };
 
+const syncStoneUpdates = async (request: Request) => {
+  // const res = await NodejsApiService.put(
+  //   "/api/stonesApi/uni/fetch-inventory-updates",
+  //   {},
+  // );
+  const inventoryUpdates: InventoryUpdate[] =
+    await NodejsApiService.syncUniUpdates({});
+  console.log("sagy124", { inventoryUpdates });
+
+  // // run the controller of deactivation
+  // const responseDeactivationShopify =
+  //   await deactivationController.deactivateStoneProduct(
+  //     request,
+  //     inventoryUpdates[0],
+  //   );
+
+  const results = await Promise.all(
+    inventoryUpdates.map((update) =>
+      deactivationController.deactivateStoneProduct(request, update),
+    ),
+  );
+
+  const total = results.length;
+  const successCount = results.filter((r) => r.success).length;
+  const failedStoneIds = results
+    .filter((r) => !r.success)
+    .map((r) => r?.deactivatedStoneId || "unknown");
+
+  console.log(`✅ Successfully updated ${successCount}/${total} stones.`);
+  console.log("📦 Finished updating MongoDB items!");
+
+  if (failedStoneIds.length > 0) {
+    console.warn("❌ Failed to update the following stone_ids:");
+    console.warn(failedStoneIds);
+  }
+
+  return {
+    success: true,
+    message: "syncStoneUpdates pressed.",
+    inventoryUpdates,
+  };
+};
+
 export default {
   updatePoolDataType1,
   updatePoolDataType2,
   updateRelatedStones,
   fetchProductsByTag,
   generateRingQuery,
+  syncStoneUpdates,
 };

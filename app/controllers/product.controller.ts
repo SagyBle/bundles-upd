@@ -33,6 +33,7 @@ const createProduct = async (request: Request) => {
             price,
             compareAtPrice,
             media,
+            stone_id,
           } = bodyElement;
 
           const title = generateDiamondTitle({
@@ -47,6 +48,7 @@ const createProduct = async (request: Request) => {
             Tag.generate(TagKey.Shape, shape),
             Tag.generate(TagKey.Weight, weight),
             Tag.generate(TagKey.Color, color),
+            Tag.generate(TagKey.StoneId, stone_id),
           ];
 
           const metafields = [

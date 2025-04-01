@@ -327,3 +327,60 @@ export const GRAPHQL_UPDATE_INVENTORY_ITEM = `#graphql
     }
   }
 `;
+
+export const GRAPHQL_UPDATE_LIST_METAFIELD = `#graphql
+  mutation UpdateListMetafield(
+    $productId: ID!,
+    $valueToAssign: String!,
+    $namespace: String!,
+    $key: String!
+  ) {
+    metafieldsSet(
+      metafields: [
+        {
+          ownerId: $productId
+          namespace: $namespace
+          key: $key
+          type: "list.product_reference"
+          value: $valueToAssign
+        }
+      ]
+    ) {
+      metafields {
+        id
+        key
+        value
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const GRAPHQL_TAGS_ADD = `#graphql
+  mutation addTags($id: ID!, $tags: [String!]!) {
+    tagsAdd(id: $id, tags: $tags) {
+      node {
+        id
+      }
+      userErrors {
+        message
+      }
+    }
+  }
+`;
+
+export const GRAPHQL_TAGS_REMOVE = `#graphql
+  mutation removeTags($id: ID!, $tags: [String!]!) {
+    tagsRemove(id: $id, tags: $tags) {
+      node {
+        id
+      }
+      userErrors {
+        message
+      }
+    }
+  }
+`;

@@ -30,3 +30,16 @@ export function extractIdFromGid(gid: string | number): string {
 
   return idStr;
 }
+
+/**
+ * Checks if a value or array of values are in Shopify GID format.
+ */
+export function isGid(input: string | string[]): boolean {
+  const gidRegex = /^gid:\/\/shopify\/[A-Za-z]+\/\d+$/;
+
+  if (Array.isArray(input)) {
+    return input.every((item) => gidRegex.test(item));
+  }
+
+  return gidRegex.test(input);
+}

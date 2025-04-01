@@ -5,6 +5,8 @@ export enum TagKey {
   Lab = "Lab",
   Cut = "Cut",
   Weight = "Weight",
+  StoneId = "stone_id",
+  Status = "Status",
 }
 
 // Define allowed values for each key

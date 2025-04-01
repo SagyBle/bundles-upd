@@ -27,6 +27,8 @@ export default function App() {
         <Link to="/app/additional">Additional page</Link>
         <Link to="/app/createStonesProducts">Create Stones Products</Link>
         <Link to="/app/pool">Stones Pool</Link>
+        <Link to="/app/bbsInventory">BB's Inventory</Link>
+        <Link to="/app/deactivation">Deactivation</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
