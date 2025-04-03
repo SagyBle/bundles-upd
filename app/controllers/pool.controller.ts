@@ -12,6 +12,7 @@ import { generateStoneQuery } from "app/utils/metafieldsToQuery";
 import NodejsApiService from "app/services/api/nodejs.api.service";
 import deactivationController from "./deactivation.controller";
 import { InventoryUpdate } from "app/utils/parsers/inventoryUpdates/uni.inventoryUpdates.parser";
+import productService from "app/services/product.service";
 
 const updatePoolDataType1 = async (request: Request) => {
   return { success: true, message: "Pool Type 1 updated successfully." };
@@ -184,6 +185,42 @@ const generateRingQuery = async (request: Request) => {
     const ring = await ProductService.newPopulateProduct({ admin }, request, {
       id: productId,
     });
+
+    console.log("sagy501", ring.metafields);
+    ring.metafields.edges.map((edge: any) => console.log("sagy503", edge.node));
+
+    const oldRelatedStones: string[] = [];
+
+    ring.metafields.edges.forEach((edge: any) => {
+      const node = edge.node;
+      if (
+        node.namespace === "custom" &&
+        node.key.startsWith("relatedstones") &&
+        Array.isArray(JSON.parse(node.value))
+      ) {
+        const ids = JSON.parse(node.value);
+        oldRelatedStones.push(...ids);
+      }
+    });
+
+    oldRelatedStones.map(async (oldRS) => {
+      const resDelete = await productService.modifyListMetafield(
+        { admin },
+        request,
+        oldRS,
+        "rings",
+        "custom",
+        {
+          valueToRemove: productId,
+        },
+      );
+      console.log(
+        "sagy505",
+        resDelete,
+        `from this stone: ${oldRS} remove this ring: ${productId}`,
+      );
+    });
+
     const extractProductIds = (group: any[]) =>
       group.map(
         (rs) =>
@@ -237,6 +274,19 @@ const generateRingQuery = async (request: Request) => {
       realtedStonesAResponse,
       realtedStonesBResponse,
       realtedStonesCResponse,
+    );
+
+    [...realtedStonesAIds, ...realtedStonesBIds, ...realtedStonesCIds].map(
+      async (rsId) => {
+        await productService.modifyListMetafield(
+          { admin },
+          request,
+          rsId,
+          "rings",
+          "custom",
+          { valueToAdd: productId },
+        );
+      },
     );
 
     return {
