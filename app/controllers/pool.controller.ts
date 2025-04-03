@@ -100,6 +100,8 @@ const fetchProductsByTag = async (request: Request) => {
 };
 
 const generateRingQuery = async (request: Request) => {
+  console.log("sagy320");
+
   try {
     const { admin } = await checkRequestType(request);
 
@@ -108,48 +110,139 @@ const generateRingQuery = async (request: Request) => {
     if (!productId) throw new Error("Ring productId is required.");
 
     productId = formatGid(productId, ShopifyResourceType.Product);
+    console.log("sagy321", { productId });
 
     const metafields = await ProductService.getProductMetafields(request, {
       productId,
     });
+    console.log("sagy322", { metafields });
 
     const parsedRingMetafields = parseRingMetafields(metafields);
-    const queryString = generateStoneQuery(parsedRingMetafields);
 
-    const products = await PoolService.fetchProductsByTag(
-      { admin },
-      request,
-      queryString,
-    );
+    const combinationsSettings: {
+      shape: string;
+      color: string;
+      carat: string;
+      clarity: string;
+    }[] = [];
+
+    for (let i = 0; i < parsedRingMetafields.stonesColors.length; i++) {
+      const color = parsedRingMetafields.stonesColors[i];
+      const clarityLevel = parsedRingMetafields.stonesClarities[i];
+
+      for (const c of parsedRingMetafields.stonesWeights) {
+        combinationsSettings.push({
+          shape: parsedRingMetafields.stonesShapes[0], // only one shape provided
+          carat: c,
+          color,
+          clarity: clarityLevel,
+        });
+      }
+    }
+
+    console.log("Calculating Combinations settings...");
+
+    console.log("sagy234", combinationsSettings);
+
+    const combinationsSettingsWithQuery = combinationsSettings.map((cs) => ({
+      ...cs,
+      queryString: generateStoneQuery({
+        stonesShapes: [cs.shape],
+        stonesWeightsRange20: [cs.carat],
+        stonesColors: [cs.color],
+        stonesClarities: [cs.clarity],
+        active: true,
+      }),
+    }));
+
+    // 🔁 For each combination, fetch matching products and attach them
+    const enrichedCombinationsSettings = [];
+    for (const setting of combinationsSettingsWithQuery) {
+      const products = await PoolService.fetchProductsByTag(
+        { admin },
+        request,
+        setting.queryString,
+      );
+
+      enrichedCombinationsSettings.push({
+        ...setting,
+        "products.length": products.length,
+        product: selectProduct(products), // 🧠 This will contain an array of matching product nodes
+      });
+    }
+
+    // 🔀 Group enriched results
+    const { relatedStonesA, relatedStonesB, relatedStonesC } =
+      splitIntoABCGroups(enrichedCombinationsSettings, 4);
+
+    console.log("✅sagy237 Grouped with Products", {
+      relatedStonesA,
+      relatedStonesB,
+      relatedStonesC,
+    });
 
     const ring = await ProductService.newPopulateProduct({ admin }, request, {
       id: productId,
     });
+    const extractProductIds = (group: any[]) =>
+      group.map(
+        (rs) =>
+          rs.product?.node?.id ||
+          formatGid("10115240001823", ShopifyResourceType.Product),
+      );
 
-    const relatedProductIds = products.map((stone: any) => {
-      let stoneId = stone.node.id;
-      stoneId = formatGid(stoneId, ShopifyResourceType.Product);
-      return stoneId;
+    const realtedStonesAIds = extractProductIds(relatedStonesA);
+    const realtedStonesBIds = extractProductIds(relatedStonesB);
+    const realtedStonesCIds = extractProductIds(relatedStonesC);
+
+    console.log("sagy238", {
+      realtedStonesAIds,
+      realtedStonesBIds,
+      realtedStonesCIds,
     });
 
-    PoolService.updateRelatedStonesMetafield(
+    const realtedStonesAResponse = await ProductService.updateListMetafield(
       { admin },
       request,
-      productId,
-      relatedProductIds,
+      {
+        productId,
+        valueToAssign: JSON.stringify(realtedStonesAIds),
+        namespace: "custom",
+        key: "relatedstonesa",
+      },
+    );
+    const realtedStonesBResponse = await ProductService.updateListMetafield(
+      { admin },
+      request,
+      {
+        productId,
+        valueToAssign: JSON.stringify(realtedStonesBIds),
+        namespace: "custom",
+        key: "relatedstonesb",
+      },
+    );
+    const realtedStonesCResponse = await ProductService.updateListMetafield(
+      { admin },
+      request,
+      {
+        productId,
+        valueToAssign: JSON.stringify(realtedStonesCIds),
+        namespace: "custom",
+        key: "relatedstonesc",
+      },
     );
 
     console.log(
-      "sagy30",
-      { ring, relatedStones: JSON.stringify(products) },
-      parsedRingMetafields,
+      "sagy239",
+      realtedStonesAResponse,
+      realtedStonesBResponse,
+      realtedStonesCResponse,
     );
 
     return {
       success: true,
       ring,
-      relatedStones: products,
-      parsedRingMetafields,
+      relatedStones: { relatedStonesA, relatedStonesB, relatedStonesC },
     };
   } catch (error: any) {
     console.error("Error fetching products by tag:", error);
@@ -198,6 +291,35 @@ const syncStoneUpdates = async (request: Request) => {
     message: "syncStoneUpdates pressed.",
     inventoryUpdates,
   };
+};
+
+function splitIntoABCGroups(entries: any[], chunkSize: number) {
+  const relatedStonesA: any[] = [];
+  const relatedStonesB: any[] = [];
+  const relatedStonesC: any[] = [];
+
+  for (let i = 0; i < entries.length; i++) {
+    if (i < chunkSize) {
+      relatedStonesA.push(entries[i]);
+    } else if (i < chunkSize * 2) {
+      relatedStonesB.push(entries[i]);
+    } else {
+      relatedStonesC.push(entries[i]);
+    }
+  }
+
+  return {
+    relatedStonesA,
+    relatedStonesB,
+    relatedStonesC,
+  };
+}
+
+const selectProduct = (products: any[]) => {
+  if (!products || products.length === 0) return null;
+
+  const randomIndex = Math.floor(Math.random() * products.length);
+  return products[randomIndex];
 };
 
 export default {

@@ -48,6 +48,7 @@ const createProduct = async (request: Request) => {
             Tag.generate(TagKey.Shape, shape),
             Tag.generate(TagKey.Weight, weight),
             Tag.generate(TagKey.Color, color),
+            Tag.generate(TagKey.Clarity, clarity),
             Tag.generate(TagKey.StoneId, stone_id),
           ];
 
@@ -70,9 +71,13 @@ const createProduct = async (request: Request) => {
               value: color,
               type: "single_line_text_field",
             },
+            {
+              namespace: "custom",
+              key: "clarity",
+              value: clarity,
+              type: "single_line_text_field",
+            },
           ];
-
-          console.log("sagy3");
 
           const product = await ProductService.newCreateProduct(
             { admin, nodejsAuth },

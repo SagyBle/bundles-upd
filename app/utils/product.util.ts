@@ -2,6 +2,7 @@ export const parseRingMetafields = (dataMetafields: Array<any>) => {
   let stonesShapes: string[] = [];
   let stonesWeights: string[] = [];
   let stonesColors: string[] = [];
+  let stonesClarities: string[] = [];
 
   dataMetafields.forEach((metafield) => {
     if (!metafield?.key || !metafield?.value) return;
@@ -21,6 +22,13 @@ export const parseRingMetafields = (dataMetafields: Array<any>) => {
           console.error("Error parsing stonesweights:", error);
         }
         break;
+      case "stonesclarities":
+        try {
+          stonesClarities = JSON.parse(metafield.value);
+        } catch (error) {
+          console.error("Error parsing stonesclarities:", error);
+        }
+        break;
       case "stonescolors":
         try {
           stonesColors = JSON.parse(metafield.value);
@@ -31,7 +39,7 @@ export const parseRingMetafields = (dataMetafields: Array<any>) => {
     }
   });
 
-  return { stonesShapes, stonesWeights, stonesColors };
+  return { stonesShapes, stonesWeights, stonesColors, stonesClarities };
 };
 
 export function generateDiamondTitle({
