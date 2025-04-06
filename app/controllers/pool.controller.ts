@@ -33,6 +33,7 @@ const updatePoolDataType2 = async (request: Request) => {
   return { success: true, query, message: "Pool Type 2 updated successfully." };
 };
 
+// TODO: modify this function to use the new logic
 const updateRelatedStones = async (request: Request) => {
   try {
     const { admin } = await checkRequestType(request);
@@ -309,17 +310,14 @@ const syncStoneUpdates = async (request: Request) => {
     await NodejsApiService.syncUniUpdates({});
   console.log("sagy124", { inventoryUpdates });
 
-  // // run the controller of deactivation
-  // const responseDeactivationShopify =
-  //   await deactivationController.deactivateStoneProduct(
-  //     request,
-  //     inventoryUpdates[0],
-  //   );
+  // temp comment starts
+  console.log("here add the wanted stone to updat.");
 
   const results = await Promise.all(
-    inventoryUpdates.map((update) =>
-      deactivationController.deactivateStoneProduct(request, update),
-    ),
+    inventoryUpdates.map((update) => {
+      console.log("sagy900", JSON.stringify(update));
+      return deactivationController.deactivateStoneProduct(request, update);
+    }),
   );
 
   const total = results.length;
@@ -335,6 +333,7 @@ const syncStoneUpdates = async (request: Request) => {
     console.warn("❌ Failed to update the following stone_ids:");
     console.warn(failedStoneIds);
   }
+  // temp comment ends
 
   return {
     success: true,

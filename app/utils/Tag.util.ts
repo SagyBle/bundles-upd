@@ -71,4 +71,58 @@ export class Tag {
 
     return result;
   }
+
+  static inferOriginalWeightTag(
+    weight: number | string,
+    range: number,
+    weightDefs?: (string | number)[],
+  ): string {
+    // Parse the weight to number
+    const parsedWeight =
+      typeof weight === "string" ? parseFloat(weight) : weight;
+
+    if (isNaN(parsedWeight)) {
+      throw new Error(`Invalid weight input: ${weight}`);
+    }
+
+    if (!weightDefs || weightDefs.length === 0) {
+      weightDefs = [
+        "0.5",
+        "1",
+        "1.5",
+        "2",
+        "2.5",
+        "3",
+        "3.5",
+        "4",
+        "4.5",
+        "5",
+        "5.5",
+        "6",
+        "6.5",
+        "7",
+        "7.5",
+        "8",
+        "8.5",
+        "9",
+        "9.5",
+        "10",
+      ];
+    }
+
+    const parsedDefs = weightDefs.map((val) =>
+      typeof val === "string" ? parseFloat(val) : val,
+    );
+
+    for (let i = 0; i < parsedDefs.length; i++) {
+      const def = parsedDefs[i];
+      if (parsedWeight >= def && parsedWeight <= def + range) {
+        return JSON.stringify(def);
+      }
+    }
+
+    throw new Error(
+      `Weight ${parsedWeight} does not match any weight definition within range [def, def + ${range}]`,
+    );
+  }
 }

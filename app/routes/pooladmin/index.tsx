@@ -26,8 +26,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const actionType = url.searchParams.get("action");
 
   if (request.method === "PUT" && actionType === "syncUniLabgrown") {
-    console.log("sagy123");
-
     return poolController.syncStoneUpdates(request);
   } else if (request.method === "PUT" && actionType === "type1") {
     return PoolController.updatePoolDataType1(request);

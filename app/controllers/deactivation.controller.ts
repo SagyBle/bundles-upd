@@ -15,6 +15,7 @@ const deactivateStoneProduct = async (
   inventoryUpdate?: InventoryUpdate,
 ) => {
   Logger.info("deactivateStoneProduct started");
+  console.log("sagy901", { inventoryUpdate });
 
   try {
     const { admin } = await checkRequestType(request);
@@ -24,10 +25,13 @@ const deactivateStoneProduct = async (
     let reason: string | null = null;
 
     if (inventoryUpdate) {
+      console.log("sagy902", "good");
+
       stone_id = inventoryUpdate.stone_id;
       reason =
         inventoryUpdate.updateType === "inactive" ? "apiUpdate" : "details";
     } else {
+      console.log("sagy902", "bad");
       // Fallback to formData
       const formData = await request.formData();
       stone_id = formData.get("stone_id") as string;
@@ -38,7 +42,7 @@ const deactivateStoneProduct = async (
       throw new Error("Missing required stone_id or reason.");
     }
 
-    console.log("sagy102", { stone_id, reason });
+    console.log("sagy903", { stone_id, reason });
     Logger.info(`Deactivating stone_id: ${stone_id}, because of: ${reason}`);
 
     const stoneIdTag = Tag.generate(TagKey.StoneId, stone_id);
@@ -102,9 +106,16 @@ const deactivateStoneProduct = async (
     const parsedStoneTags = Tag.parseMany(stoneProduct.tags);
     console.log("sagy13", parsedStoneTags);
 
+    console.log("sagy109", parsedStoneTags.weight.value);
+    const weightOriginalInfered = Tag.inferOriginalWeightTag(
+      parsedStoneTags.weight.value,
+      0.2,
+    );
+
     const queryStringByStoneTags = generateStoneQuery({
       stonesShapes: [parsedStoneTags.shape.value],
-      stonesWeights: [parsedStoneTags.weight.value],
+      // stonesWeights: [parsedStoneTags.weight.value],
+      stonesWeightsRange20: [weightOriginalInfered],
       stonesColors: [parsedStoneTags.color.value],
       active: true,
     });
@@ -143,11 +154,41 @@ const deactivateStoneProduct = async (
     );
 
     relatedRingsProductGids.forEach(async (ringProductGid: string) => {
+      // understand which realtedStones (A,B or C) to remove
+      // TODO: get the ring metafileds
+      // TODO: find the metafiled that comes from the shopifyProductGid
+      const ringMetafields = await productService.getProductMetafields(
+        request,
+        { productId: ringProductGid },
+      );
+
+      console.log("sagy21 ringMetafields", JSON.stringify(ringMetafields));
+
+      // Find the key that contains the product GID
+      const relatedStonesMetafield = ringMetafields.find(
+        (mf: any) =>
+          mf.namespace === "custom" &&
+          mf.type === "list.product_reference" &&
+          JSON.parse(mf.value || "[]").includes(shopifyProductGid),
+      );
+
+      if (!relatedStonesMetafield) {
+        console.log(
+          "❌ Could not find a relatedstones metafield that includes the product GID",
+          shopifyProductGid,
+        );
+        return;
+      }
+
+      const metafieldKey = relatedStonesMetafield.key;
+
+      console.log("sagy23", metafieldKey);
+
       const ringRelatedStonesUpdated = await productService.modifyListMetafield(
         { admin },
         request,
         ringProductGid,
-        "relatedstones",
+        metafieldKey,
         "custom",
         { valueToRemove: shopifyProductGid, valueToAdd: replacementStoneId },
       );
