@@ -327,13 +327,13 @@ const syncStoneUpdates = async (request: Request) => {
     .map((r) => r?.deactivatedStoneId || "unknown");
 
   console.log(`✅ Successfully updated ${successCount}/${total} stones.`);
+  // TODO: UPDATE THE MONGODB ITEMS
   console.log("📦 Finished updating MongoDB items!");
 
   if (failedStoneIds.length > 0) {
     console.warn("❌ Failed to update the following stone_ids:");
     console.warn(failedStoneIds);
   }
-  // temp comment ends
 
   return {
     success: true,
