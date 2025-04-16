@@ -20,6 +20,8 @@ export default class ApiService {
   }
 
   async post<T>(endpoint: string, body: any): Promise<T> {
+    console.log("sagy21", `${this.baseUrl}${endpoint}`, "POST", body);
+
     return this.request<T>(`${this.baseUrl}${endpoint}`, "POST", body);
   }
 

@@ -24,7 +24,7 @@ const shapeOptions = [
 
 const colorOptions = [
   { label: "Select Color", value: "" },
-  ...["F", "G", "H", "I", "J", "K", "L", "M"].map((c) => ({
+  ...["D", "E", "F", "G", "H", "I", "J", "K", "L", "M"].map((c) => ({
     label: c,
     value: c,
   })),

@@ -1,4 +1,5 @@
 import { TagKey, TagValue } from "app/enums/tag.enums";
+import nodejsApiService from "app/services/api/nodejs.api.service";
 import { ShopifyService } from "app/services/api/shopify.api.service";
 import ProductService from "app/services/product.service";
 import { Stone, StoneSchema } from "app/types/zod/schemas/stone.zod.schema";
@@ -140,6 +141,15 @@ const createProduct = async (request: Request) => {
             );
 
           console.log("sagy302", updatedInventory);
+
+          const mongodbStoneUpdateAsShopifyProduct = await nodejsApiService.put(
+            "/api/stonesApi/uni/list-shopify-products",
+            {
+              stonesIds: [stone_id],
+            },
+          );
+
+          console.log("sagy299", mongodbStoneUpdateAsShopifyProduct);
 
           return { success: true, product, variant: updatedVariant };
         } catch (error: any) {

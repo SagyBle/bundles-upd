@@ -117,6 +117,7 @@ const deactivateStoneProduct = async (
       // stonesWeights: [parsedStoneTags.weight.value],
       stonesWeightsRange20: [weightOriginalInfered],
       stonesColors: [parsedStoneTags.color.value],
+      stonesClarities: [parsedStoneTags.clarity.value],
       active: true,
     });
     console.log("sagy15", queryStringByStoneTags);

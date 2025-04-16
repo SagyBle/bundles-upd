@@ -29,6 +29,7 @@ export default function App() {
         <Link to="/app/pool">Stones Pool</Link>
         <Link to="/app/bbsInventory">BB's Inventory</Link>
         <Link to="/app/deactivation">Deactivation</Link>
+        <Link to="/app/purchase">Purchase</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
