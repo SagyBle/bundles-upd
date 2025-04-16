@@ -21,6 +21,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
+  console.log("sagy500", "recieved the request");
+
   const url = new URL(request.url);
   const actionType = url.searchParams.get("action");
 

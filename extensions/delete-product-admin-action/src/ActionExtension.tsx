@@ -14,23 +14,24 @@ const TARGET = "admin.product-details.action.render";
 export default reactExtension(TARGET, () => <App />);
 
 function App() {
-  // The useApi hook provides access to several useful APIs like i18n, close, and data.
   const { i18n, close, data } = useApi(TARGET);
-  console.log({ data });
   const [productTitle, setProductTitle] = useState("");
-  // Use direct API calls to fetch data from Shopify.
-  // See https://shopify.dev/docs/api/admin-graphql for more information about Shopify's GraphQL API
+  const [productStoneId, setProductStoneId] = useState("");
+
   useEffect(() => {
     (async function getProductInfo() {
       const getProductQuery = {
         query: `query Product($id: ID!) {
           product(id: $id) {
             title
+            productType
+            tags
           }
         }`,
         variables: { id: data.selected[0].id },
       };
 
+      console.log("sagy4097");
       const res = await fetch("shopify:admin/api/graphql.json", {
         method: "POST",
         body: JSON.stringify(getProductQuery),
@@ -38,42 +39,75 @@ function App() {
 
       if (!res.ok) {
         console.error("Network error");
+        return;
       }
 
       const productData = await res.json();
-      setProductTitle(productData.data.product.title);
+      const product = productData.data.product;
+
+      console.log("sagy4099", { product });
+      console.log("sagy4100", product.tags);
+
+      setProductTitle(product.title);
+
+      // ✅ Find tag with prefix "stone_id_"
+      const stoneTag = product.tags.find((tag: string) =>
+        tag.startsWith("stone_id_"),
+      );
+
+      if (stoneTag) {
+        const stoneId = stoneTag.replace("stone_id_", "");
+        console.log("✅ Found Stone ID:", stoneId);
+        setProductStoneId(stoneId);
+      } else {
+        console.log("ℹ️ No stone_id_ tag found.");
+      }
     })();
   }, [data.selected]);
+
+  const handleGenerateCheckoutLink = async () => {
+    const formData = new FormData();
+    formData.append("productId", data?.selected?.[0]?.id ?? "");
+    formData.append("stone_id", productStoneId);
+    formData.append("reason", "manualUpdate");
+
+    const res = await fetch("/api/generate-checkout-link", {
+      method: "POST",
+      body: formData, // ✅ pass FormData instead of JSON
+    });
+
+    console.log("sagy410", res);
+
+    return res;
+  };
+
   return (
-    // The AdminAction component provides an API for setting the title and actions of the Action extension wrapper.
     <AdminAction
-      primaryAction={
-        <Button
-          onPress={() => {
-            console.log("saving");
-            close();
-          }}
-        >
-          Done
-        </Button>
-      }
-      secondaryAction={
-        <Button
-          onPress={() => {
-            console.log("closing");
-            close();
-          }}
-        >
-          Close
-        </Button>
-      }
+      primaryAction={<Button onPress={close}>Done</Button>}
+      secondaryAction={<Button onPress={close}>Close</Button>}
     >
       <BlockStack>
-        {/* Set the translation values for each supported language in the locales directory */}
         <Text fontWeight="bold">
           {i18n.translate("welcome", { target: TARGET })}
         </Text>
         <Text>Sagy Current product: {productTitle}</Text>
+        <Text>Sagy stone id: {productStoneId}</Text>
+
+        <Button
+          onPress={async () => {
+            try {
+              const res = await handleGenerateCheckoutLink();
+              const result = await res.json();
+              console.log("✅ Server Response:", result);
+            } catch (err) {
+              console.error("❌ Error sending request:", err);
+            }
+
+            close();
+          }}
+        >
+          Run Test POST
+        </Button>
       </BlockStack>
     </AdminAction>
   );

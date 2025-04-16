@@ -31,12 +31,14 @@ const deactivateStoneProduct = async (
       reason =
         inventoryUpdate.updateType === "inactive" ? "apiUpdate" : "details";
     } else {
-      console.log("sagy902", "bad");
       // Fallback to formData
       const formData = await request.formData();
+      console.log("sagy902", { formData });
       stone_id = formData.get("stone_id") as string;
       reason = formData.get("reason") as string;
     }
+
+    console.log("sagy510", { stone_id, reason });
 
     if (!stone_id || !reason) {
       throw new Error("Missing required stone_id or reason.");
