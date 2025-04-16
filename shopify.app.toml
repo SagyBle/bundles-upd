@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "f1ba0e069721f93052cfa0eb3b26fc38"
-application_url = "https://textbooks-fitting-sleep-aus.trycloudflare.com"
+application_url = "https://bar-jesus-personal-barely.trycloudflare.com"
 embedded = true
 name = "budnles-upd"
 handle = "budnles-upd"
@@ -27,9 +27,9 @@ scopes = "write_products, read_inventory, write_inventory"
 
 [auth]
 redirect_urls = [
-  "https://textbooks-fitting-sleep-aus.trycloudflare.com/auth/callback",
-  "https://textbooks-fitting-sleep-aus.trycloudflare.com/auth/shopify/callback",
-  "https://textbooks-fitting-sleep-aus.trycloudflare.com/api/auth/callback"
+  "https://bar-jesus-personal-barely.trycloudflare.com/auth/callback",
+  "https://bar-jesus-personal-barely.trycloudflare.com/auth/shopify/callback",
+  "https://bar-jesus-personal-barely.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

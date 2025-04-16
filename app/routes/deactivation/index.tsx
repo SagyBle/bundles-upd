@@ -30,6 +30,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       success: true,
       data: "✅ Deactivation triggered.",
     };
+  } else if (request.method === "POST" && actionType === "test") {
+    console.log("sagy201");
+
+    return {
+      success: true,
+      data: "✅ Deactivation triggered.",
+    };
   }
 
   return { success: false, error: "Invalid request method" };
